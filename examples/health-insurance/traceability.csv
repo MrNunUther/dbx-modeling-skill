@@ -1,0 +1,7 @@
+Requirement_ID,Objects,Checks,Static_Status,Manual_Review
+REQ-01,member;plan;enrollment;provider;network;claim,PROTECTED,pass,not_applicable
+REQ-02,claim.adjudication;claim.header;claim.line;enrollment.coverage;network.participation,PK;FK_TARGET;FK_TYPES,pass,not_applicable
+REQ-03,member.identity,METADATA;SENSITIVITY,pass,not_applicable
+REQ-04,metrics.claim_financials,METRICS,pass,not_applicable
+REQ-05,claim.header;claim.line,ARTIFACTS,pass,not_applicable
+REQ-06,network.participation;claim.line;enrollment.coverage,manual,not_run,required

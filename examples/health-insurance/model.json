@@ -1,0 +1,1964 @@
+{
+  "contract_version": "1.0.0",
+  "model_version": "1.0.0",
+  "business": {
+    "name": "Health insurance teaching slice",
+    "industry": "health_insurance",
+    "jurisdiction": "Illustrative US context, not legal guidance",
+    "processes": [
+      "coverage election",
+      "claim submission and adjudication",
+      "provider-network participation"
+    ]
+  },
+  "profile": "enterprise_core",
+  "scope": "reduced_core",
+  "conventions": {
+    "naming": "snake_case",
+    "key_type": "BIGINT",
+    "boolean_type": "BOOLEAN",
+    "inline_enum_cap": 6,
+    "graph_policy": "acyclic_with_hierarchy",
+    "division_taxonomy": [
+      "operations",
+      "business",
+      "corporate"
+    ],
+    "advisory": {
+      "division_ratios": {
+        "operations": 0.5,
+        "business": 0.35,
+        "corporate": 0.15
+      },
+      "max_corporate_share": 0.2,
+      "domain_name_length": 20,
+      "product_name_length": 30,
+      "attribute_name_length": 50,
+      "description_width": 256,
+      "association_share": 0.15,
+      "sizing_bands": null
+    }
+  },
+  "provenance": [
+    {
+      "source": "lakehouse-industry-data-models/data-models/health_insurance/v2/ecm",
+      "source_model_version": "v3_ecm",
+      "source_agent_version": "4.3.3",
+      "method": "Conceptual synthesis; names, grains, attributes, relationships, and outputs re-authored."
+    }
+  ],
+  "domains": [
+    {
+      "name": "member",
+      "physical_schema": "member",
+      "division": "business",
+      "owner": "example_member_owners",
+      "description": "Owns the member business records within the explicitly bounded teaching scope.",
+      "references": [],
+      "tags": {},
+      "subdomains": [
+        {
+          "name": "person_identity",
+          "description": "Groups the member products by business responsibility."
+        }
+      ],
+      "products": [
+        {
+          "name": "identity",
+          "physical_name": "identity",
+          "classification": "master_data",
+          "role": "party",
+          "grain": "One insured person, independent of a coverage episode.",
+          "description": "Authoritative identity for the insured person in this teaching scope.",
+          "steward": "example_data_stewards",
+          "subdomain": "person_identity",
+          "primary_key": [
+            "identity_id"
+          ],
+          "business_keys": [
+            [
+              "source_member_number"
+            ]
+          ],
+          "tags": {},
+          "standalone_reason": "",
+          "attributes": [
+            {
+              "name": "identity_id",
+              "physical_name": "identity_id",
+              "type": "BIGINT",
+              "nullable": false,
+              "description": "Stable surrogate identifier for this record.",
+              "glossary": "Identity Identifier",
+              "sensitivity": "personal",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "personal"
+              },
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "source_member_number",
+              "physical_name": "source_member_number",
+              "type": "STRING",
+              "nullable": false,
+              "description": "Source-system member identity for reconciliation.",
+              "glossary": "Source Member Number",
+              "sensitivity": "personal",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "personal"
+              },
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "given_name",
+              "physical_name": "given_name",
+              "type": "STRING",
+              "nullable": false,
+              "description": "Person's given name as recorded by the enrollment source.",
+              "glossary": "Given Name",
+              "sensitivity": "personal",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "personal"
+              },
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "family_name",
+              "physical_name": "family_name",
+              "type": "STRING",
+              "nullable": false,
+              "description": "Person's family name as recorded by the enrollment source.",
+              "glossary": "Family Name",
+              "sensitivity": "personal",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "personal"
+              },
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "date_of_birth",
+              "physical_name": "date_of_birth",
+              "type": "DATE",
+              "nullable": false,
+              "description": "Person's date of birth used in eligibility processing.",
+              "glossary": "Date Of Birth",
+              "sensitivity": "personal",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "personal"
+              },
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "identity_status",
+              "physical_name": "identity_status",
+              "type": "STRING",
+              "nullable": false,
+              "description": "Current lifecycle state of the insured identity.",
+              "glossary": "Identity Status",
+              "sensitivity": "personal",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "personal"
+              },
+              "references": [],
+              "allowed_values": [
+                "active",
+                "inactive"
+              ],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "created_at",
+              "physical_name": "created_at",
+              "type": "TIMESTAMP",
+              "nullable": false,
+              "description": "Timestamp when the identity entered this system.",
+              "glossary": "Created At",
+              "sensitivity": "personal",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "personal"
+              },
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "plan",
+      "physical_schema": "plan",
+      "division": "business",
+      "owner": "example_plan_owners",
+      "description": "Owns the plan business records within the explicitly bounded teaching scope.",
+      "references": [],
+      "tags": {},
+      "subdomains": [
+        {
+          "name": "plan_design",
+          "description": "Groups the plan products by business responsibility."
+        }
+      ],
+      "products": [
+        {
+          "name": "health_plan",
+          "physical_name": "health_plan",
+          "classification": "master_data",
+          "role": "agreement",
+          "grain": "One version of a offered health-plan design.",
+          "description": "Versioned plan design used to define coverage commitments.",
+          "steward": "example_data_stewards",
+          "subdomain": "plan_design",
+          "primary_key": [
+            "health_plan_id"
+          ],
+          "business_keys": [
+            [
+              "plan_code",
+              "design_version"
+            ]
+          ],
+          "tags": {},
+          "standalone_reason": "",
+          "attributes": [
+            {
+              "name": "health_plan_id",
+              "physical_name": "health_plan_id",
+              "type": "BIGINT",
+              "nullable": false,
+              "description": "Stable surrogate identifier for this record.",
+              "glossary": "Health Plan Identifier",
+              "sensitivity": "none",
+              "classification": "internal",
+              "tags": {},
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "plan_code",
+              "physical_name": "plan_code",
+              "type": "STRING",
+              "nullable": false,
+              "description": "Source plan code, unique together with the design version.",
+              "glossary": "Plan Code",
+              "sensitivity": "none",
+              "classification": "internal",
+              "tags": {},
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "design_version",
+              "physical_name": "design_version",
+              "type": "INT",
+              "nullable": false,
+              "description": "Version of the plan benefit design.",
+              "glossary": "Design Version",
+              "sensitivity": "none",
+              "classification": "internal",
+              "tags": {},
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "plan_name",
+              "physical_name": "plan_name",
+              "type": "STRING",
+              "nullable": false,
+              "description": "Business label of the offered health plan.",
+              "glossary": "Plan Name",
+              "sensitivity": "none",
+              "classification": "internal",
+              "tags": {},
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "effective_from",
+              "physical_name": "effective_from",
+              "type": "DATE",
+              "nullable": false,
+              "description": "First date on which this design is effective.",
+              "glossary": "Effective From",
+              "sensitivity": "none",
+              "classification": "internal",
+              "tags": {},
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "effective_to",
+              "physical_name": "effective_to",
+              "type": "DATE",
+              "nullable": true,
+              "description": "Exclusive end date of this design, if retired.",
+              "glossary": "Effective To",
+              "sensitivity": "none",
+              "classification": "internal",
+              "tags": {},
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "currency_code",
+              "physical_name": "currency_code",
+              "type": "STRING",
+              "nullable": false,
+              "description": "ISO 4217 currency for plan monetary terms.",
+              "glossary": "Currency Code",
+              "sensitivity": "none",
+              "classification": "internal",
+              "tags": {},
+              "references": [
+                "ISO 4217 currency codes"
+              ],
+              "allowed_values": [],
+              "pattern": "^[A-Z]{3}$",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "deductible_amount",
+              "physical_name": "deductible_amount",
+              "type": "DECIMAL(18,2)",
+              "nullable": false,
+              "description": "Individual deductible under this design.",
+              "glossary": "Deductible Amount",
+              "sensitivity": "none",
+              "classification": "internal",
+              "tags": {},
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "enrollment",
+      "physical_schema": "enrollment",
+      "division": "operations",
+      "owner": "example_enrollment_owners",
+      "description": "Owns the enrollment business records within the explicitly bounded teaching scope.",
+      "references": [],
+      "tags": {},
+      "subdomains": [
+        {
+          "name": "coverage_management",
+          "description": "Groups the enrollment products by business responsibility."
+        }
+      ],
+      "products": [
+        {
+          "name": "coverage",
+          "physical_name": "coverage",
+          "classification": "transactional_data",
+          "role": "agreement",
+          "grain": "One continuous person-plan coverage interval.",
+          "description": "Coverage episode binding a person to a versioned plan design.",
+          "steward": "example_data_stewards",
+          "subdomain": "coverage_management",
+          "primary_key": [
+            "coverage_id"
+          ],
+          "business_keys": [
+            [
+              "identity_id",
+              "health_plan_id",
+              "coverage_from"
+            ]
+          ],
+          "tags": {},
+          "standalone_reason": "",
+          "attributes": [
+            {
+              "name": "coverage_id",
+              "physical_name": "coverage_id",
+              "type": "BIGINT",
+              "nullable": false,
+              "description": "Stable surrogate identifier for this record.",
+              "glossary": "Coverage Identifier",
+              "sensitivity": "health",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "health"
+              },
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "identity_id",
+              "physical_name": "identity_id",
+              "type": "BIGINT",
+              "nullable": false,
+              "description": "Covered person owned by the member domain.",
+              "glossary": "Identity Identifier",
+              "sensitivity": "health",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "health"
+              },
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "health_plan_id",
+              "physical_name": "health_plan_id",
+              "type": "BIGINT",
+              "nullable": false,
+              "description": "Plan design governing this coverage episode.",
+              "glossary": "Health Plan Identifier",
+              "sensitivity": "health",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "health"
+              },
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "coverage_from",
+              "physical_name": "coverage_from",
+              "type": "DATE",
+              "nullable": false,
+              "description": "Inclusive start date of coverage.",
+              "glossary": "Coverage From",
+              "sensitivity": "health",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "health"
+              },
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "coverage_to",
+              "physical_name": "coverage_to",
+              "type": "DATE",
+              "nullable": true,
+              "description": "Exclusive end date of coverage, if terminated.",
+              "glossary": "Coverage To",
+              "sensitivity": "health",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "health"
+              },
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "coverage_status",
+              "physical_name": "coverage_status",
+              "type": "STRING",
+              "nullable": false,
+              "description": "Current state of the coverage episode.",
+              "glossary": "Coverage Status",
+              "sensitivity": "health",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "health"
+              },
+              "references": [],
+              "allowed_values": [
+                "active",
+                "terminated",
+                "pending"
+              ],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "elected_at",
+              "physical_name": "elected_at",
+              "type": "TIMESTAMP",
+              "nullable": false,
+              "description": "Timestamp when the coverage election was accepted.",
+              "glossary": "Elected At",
+              "sensitivity": "health",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "health"
+              },
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "provider",
+      "physical_schema": "provider",
+      "division": "operations",
+      "owner": "example_provider_owners",
+      "description": "Owns the provider business records within the explicitly bounded teaching scope.",
+      "references": [],
+      "tags": {},
+      "subdomains": [
+        {
+          "name": "provider_identity",
+          "description": "Groups the provider products by business responsibility."
+        }
+      ],
+      "products": [
+        {
+          "name": "provider",
+          "physical_name": "provider",
+          "classification": "master_data",
+          "role": "party",
+          "grain": "One healthcare provider identity.",
+          "description": "Authoritative provider identity used in service and network records.",
+          "steward": "example_data_stewards",
+          "subdomain": "provider_identity",
+          "primary_key": [
+            "provider_id"
+          ],
+          "business_keys": [
+            [
+              "provider_number"
+            ]
+          ],
+          "tags": {},
+          "standalone_reason": "",
+          "attributes": [
+            {
+              "name": "provider_id",
+              "physical_name": "provider_id",
+              "type": "BIGINT",
+              "nullable": false,
+              "description": "Stable surrogate identifier for this record.",
+              "glossary": "Provider Identifier",
+              "sensitivity": "none",
+              "classification": "internal",
+              "tags": {},
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "provider_number",
+              "physical_name": "provider_number",
+              "type": "STRING",
+              "nullable": false,
+              "description": "Source provider identity used for reconciliation.",
+              "glossary": "Provider Number",
+              "sensitivity": "none",
+              "classification": "internal",
+              "tags": {},
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "provider_name",
+              "physical_name": "provider_name",
+              "type": "STRING",
+              "nullable": false,
+              "description": "Provider's business display label.",
+              "glossary": "Provider Name",
+              "sensitivity": "personal",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "personal"
+              },
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "provider_kind",
+              "physical_name": "provider_kind",
+              "type": "STRING",
+              "nullable": false,
+              "description": "Provider identity category.",
+              "glossary": "Provider Kind",
+              "sensitivity": "none",
+              "classification": "internal",
+              "tags": {},
+              "references": [],
+              "allowed_values": [
+                "person",
+                "organization"
+              ],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "provider_status",
+              "physical_name": "provider_status",
+              "type": "STRING",
+              "nullable": false,
+              "description": "Operational provider lifecycle state.",
+              "glossary": "Provider Status",
+              "sensitivity": "none",
+              "classification": "internal",
+              "tags": {},
+              "references": [],
+              "allowed_values": [
+                "active",
+                "inactive"
+              ],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "created_at",
+              "physical_name": "created_at",
+              "type": "TIMESTAMP",
+              "nullable": false,
+              "description": "Timestamp when the provider record was created.",
+              "glossary": "Created At",
+              "sensitivity": "none",
+              "classification": "internal",
+              "tags": {},
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "network",
+      "physical_schema": "network",
+      "division": "operations",
+      "owner": "example_network_owners",
+      "description": "Owns the network business records within the explicitly bounded teaching scope.",
+      "references": [],
+      "tags": {},
+      "subdomains": [
+        {
+          "name": "network_participation",
+          "description": "Groups the network products by business responsibility."
+        }
+      ],
+      "products": [
+        {
+          "name": "provider_network",
+          "physical_name": "provider_network",
+          "classification": "master_data",
+          "role": "resource",
+          "grain": "One provider network offered by the business.",
+          "description": "Named service network used to organize provider participation.",
+          "steward": "example_data_stewards",
+          "subdomain": "network_participation",
+          "primary_key": [
+            "provider_network_id"
+          ],
+          "business_keys": [
+            [
+              "network_code"
+            ]
+          ],
+          "tags": {},
+          "standalone_reason": "",
+          "attributes": [
+            {
+              "name": "provider_network_id",
+              "physical_name": "provider_network_id",
+              "type": "BIGINT",
+              "nullable": false,
+              "description": "Stable surrogate identifier for this record.",
+              "glossary": "Provider Network Identifier",
+              "sensitivity": "none",
+              "classification": "internal",
+              "tags": {},
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "network_code",
+              "physical_name": "network_code",
+              "type": "STRING",
+              "nullable": false,
+              "description": "Business identifier of the provider network.",
+              "glossary": "Network Code",
+              "sensitivity": "none",
+              "classification": "internal",
+              "tags": {},
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "network_name",
+              "physical_name": "network_name",
+              "type": "STRING",
+              "nullable": false,
+              "description": "Business display label of the network.",
+              "glossary": "Network Name",
+              "sensitivity": "none",
+              "classification": "internal",
+              "tags": {},
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "network_status",
+              "physical_name": "network_status",
+              "type": "STRING",
+              "nullable": false,
+              "description": "Operational lifecycle state of the network.",
+              "glossary": "Network Status",
+              "sensitivity": "none",
+              "classification": "internal",
+              "tags": {},
+              "references": [],
+              "allowed_values": [
+                "active",
+                "inactive"
+              ],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            }
+          ]
+        },
+        {
+          "name": "participation",
+          "physical_name": "participation",
+          "classification": "association_data",
+          "role": "association",
+          "grain": "One provider-network participation interval.",
+          "description": "Effective participation agreement between a provider and network.",
+          "steward": "example_data_stewards",
+          "subdomain": "network_participation",
+          "primary_key": [
+            "participation_id"
+          ],
+          "business_keys": [
+            [
+              "provider_id",
+              "provider_network_id",
+              "participation_from"
+            ]
+          ],
+          "tags": {},
+          "standalone_reason": "",
+          "attributes": [
+            {
+              "name": "participation_id",
+              "physical_name": "participation_id",
+              "type": "BIGINT",
+              "nullable": false,
+              "description": "Stable surrogate identifier for this record.",
+              "glossary": "Participation Identifier",
+              "sensitivity": "none",
+              "classification": "internal",
+              "tags": {},
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "provider_id",
+              "physical_name": "provider_id",
+              "type": "BIGINT",
+              "nullable": false,
+              "description": "Provider participating in the network.",
+              "glossary": "Provider Identifier",
+              "sensitivity": "none",
+              "classification": "internal",
+              "tags": {},
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "provider_network_id",
+              "physical_name": "provider_network_id",
+              "type": "BIGINT",
+              "nullable": false,
+              "description": "Network accepting this provider.",
+              "glossary": "Provider Network Identifier",
+              "sensitivity": "none",
+              "classification": "internal",
+              "tags": {},
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "participation_from",
+              "physical_name": "participation_from",
+              "type": "DATE",
+              "nullable": false,
+              "description": "Inclusive first date of this participation agreement.",
+              "glossary": "Participation From",
+              "sensitivity": "none",
+              "classification": "internal",
+              "tags": {},
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "participation_to",
+              "physical_name": "participation_to",
+              "type": "DATE",
+              "nullable": true,
+              "description": "Exclusive end date if participation ended.",
+              "glossary": "Participation To",
+              "sensitivity": "none",
+              "classification": "internal",
+              "tags": {},
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "participation_status",
+              "physical_name": "participation_status",
+              "type": "STRING",
+              "nullable": false,
+              "description": "Agreement lifecycle state.",
+              "glossary": "Participation Status",
+              "sensitivity": "none",
+              "classification": "internal",
+              "tags": {},
+              "references": [],
+              "allowed_values": [
+                "active",
+                "ended",
+                "pending"
+              ],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "created_at",
+              "physical_name": "created_at",
+              "type": "TIMESTAMP",
+              "nullable": false,
+              "description": "Timestamp when participation was recorded.",
+              "glossary": "Created At",
+              "sensitivity": "none",
+              "classification": "internal",
+              "tags": {},
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "claim",
+      "physical_schema": "claim",
+      "division": "operations",
+      "owner": "example_claim_owners",
+      "description": "Owns the claim business records within the explicitly bounded teaching scope.",
+      "references": [],
+      "tags": {},
+      "subdomains": [
+        {
+          "name": "claim_processing",
+          "description": "Groups the claim products by business responsibility."
+        }
+      ],
+      "products": [
+        {
+          "name": "claim_status",
+          "physical_name": "claim_status",
+          "classification": "reference_data",
+          "role": "reference",
+          "grain": "One recognized claim processing state.",
+          "description": "Reference vocabulary for claim states, including more than six categories.",
+          "steward": "example_data_stewards",
+          "subdomain": "claim_processing",
+          "primary_key": [
+            "claim_status_id"
+          ],
+          "business_keys": [
+            [
+              "status_code"
+            ]
+          ],
+          "tags": {},
+          "standalone_reason": "",
+          "attributes": [
+            {
+              "name": "claim_status_id",
+              "physical_name": "claim_status_id",
+              "type": "BIGINT",
+              "nullable": false,
+              "description": "Stable surrogate identifier for this record.",
+              "glossary": "Claim Status Identifier",
+              "sensitivity": "none",
+              "classification": "internal",
+              "tags": {},
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "status_code",
+              "physical_name": "status_code",
+              "type": "STRING",
+              "nullable": false,
+              "description": "Stable machine-readable processing state.",
+              "glossary": "Status Code",
+              "sensitivity": "none",
+              "classification": "internal",
+              "tags": {},
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "status_label",
+              "physical_name": "status_label",
+              "type": "STRING",
+              "nullable": false,
+              "description": "Human-readable processing state label.",
+              "glossary": "Status Label",
+              "sensitivity": "none",
+              "classification": "internal",
+              "tags": {},
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "is_terminal",
+              "physical_name": "is_terminal",
+              "type": "BOOLEAN",
+              "nullable": false,
+              "description": "Whether this state ends normal processing.",
+              "glossary": "Is Terminal",
+              "sensitivity": "none",
+              "classification": "internal",
+              "tags": {},
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            }
+          ]
+        },
+        {
+          "name": "header",
+          "physical_name": "header",
+          "classification": "transactional_data",
+          "role": "transaction_header",
+          "grain": "One submitted claim version for a coverage episode.",
+          "description": "Claim submission identity and event-time financial totals.",
+          "steward": "example_data_stewards",
+          "subdomain": "claim_processing",
+          "primary_key": [
+            "header_id"
+          ],
+          "business_keys": [
+            [
+              "claim_number",
+              "submission_version"
+            ]
+          ],
+          "tags": {},
+          "standalone_reason": "",
+          "attributes": [
+            {
+              "name": "header_id",
+              "physical_name": "header_id",
+              "type": "BIGINT",
+              "nullable": false,
+              "description": "Stable surrogate identifier for this record.",
+              "glossary": "Header Identifier",
+              "sensitivity": "health",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "health"
+              },
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "coverage_id",
+              "physical_name": "coverage_id",
+              "type": "BIGINT",
+              "nullable": false,
+              "description": "Coverage episode for the insured person at service time.",
+              "glossary": "Coverage Identifier",
+              "sensitivity": "health",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "health"
+              },
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "billing_provider_id",
+              "physical_name": "billing_provider_id",
+              "type": "BIGINT",
+              "nullable": false,
+              "description": "Provider submitting the bill.",
+              "glossary": "Billing Provider Identifier",
+              "sensitivity": "health",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "health"
+              },
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "rendering_provider_id",
+              "physical_name": "rendering_provider_id",
+              "type": "BIGINT",
+              "nullable": true,
+              "description": "Provider that performed the service.",
+              "glossary": "Rendering Provider Identifier",
+              "sensitivity": "health",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "health"
+              },
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "claim_status_id",
+              "physical_name": "claim_status_id",
+              "type": "BIGINT",
+              "nullable": false,
+              "description": "Current processing state in the claim status vocabulary.",
+              "glossary": "Claim Status Identifier",
+              "sensitivity": "health",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "health"
+              },
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "claim_number",
+              "physical_name": "claim_number",
+              "type": "STRING",
+              "nullable": false,
+              "description": "Source claim identifier used for reconciliation.",
+              "glossary": "Claim Number",
+              "sensitivity": "health",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "health"
+              },
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "submission_version",
+              "physical_name": "submission_version",
+              "type": "INT",
+              "nullable": false,
+              "description": "Source version of this submitted claim.",
+              "glossary": "Submission Version",
+              "sensitivity": "health",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "health"
+              },
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "received_at",
+              "physical_name": "received_at",
+              "type": "TIMESTAMP",
+              "nullable": false,
+              "description": "Timestamp when this claim version was received.",
+              "glossary": "Received At",
+              "sensitivity": "health",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "health"
+              },
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "service_date",
+              "physical_name": "service_date",
+              "type": "DATE",
+              "nullable": false,
+              "description": "Business service date attributed to the claim.",
+              "glossary": "Service Date",
+              "sensitivity": "health",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "health"
+              },
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "currency_code",
+              "physical_name": "currency_code",
+              "type": "STRING",
+              "nullable": false,
+              "description": "ISO 4217 currency for all claim amounts.",
+              "glossary": "Currency Code",
+              "sensitivity": "health",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "health"
+              },
+              "references": [
+                "ISO 4217 currency codes"
+              ],
+              "allowed_values": [],
+              "pattern": "^[A-Z]{3}$",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "billed_amount",
+              "physical_name": "billed_amount",
+              "type": "DECIMAL(18,2)",
+              "nullable": false,
+              "description": "Event-time total billed on this submitted version.",
+              "glossary": "Billed Amount",
+              "sensitivity": "health",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "health"
+              },
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": true,
+              "monetary": true
+            },
+            {
+              "name": "allowed_amount",
+              "physical_name": "allowed_amount",
+              "type": "DECIMAL(18,2)",
+              "nullable": true,
+              "description": "Allowed total for this claim version.",
+              "glossary": "Allowed Amount",
+              "sensitivity": "health",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "health"
+              },
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": true,
+              "monetary": true
+            },
+            {
+              "name": "paid_amount",
+              "physical_name": "paid_amount",
+              "type": "DECIMAL(18,2)",
+              "nullable": true,
+              "description": "Paid total for this claim version.",
+              "glossary": "Paid Amount",
+              "sensitivity": "health",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "health"
+              },
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": true,
+              "monetary": true
+            }
+          ]
+        },
+        {
+          "name": "line",
+          "physical_name": "line",
+          "classification": "transactional_data",
+          "role": "transaction_line",
+          "grain": "One service line within a submitted claim version.",
+          "description": "Service detail retaining price at the time of service.",
+          "steward": "example_data_stewards",
+          "subdomain": "claim_processing",
+          "primary_key": [
+            "line_id"
+          ],
+          "business_keys": [
+            [
+              "header_id",
+              "line_number"
+            ]
+          ],
+          "tags": {},
+          "standalone_reason": "",
+          "attributes": [
+            {
+              "name": "line_id",
+              "physical_name": "line_id",
+              "type": "BIGINT",
+              "nullable": false,
+              "description": "Stable surrogate identifier for this record.",
+              "glossary": "Line Identifier",
+              "sensitivity": "health",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "health"
+              },
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "header_id",
+              "physical_name": "header_id",
+              "type": "BIGINT",
+              "nullable": false,
+              "description": "Owning claim submission header.",
+              "glossary": "Header Identifier",
+              "sensitivity": "health",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "health"
+              },
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "line_number",
+              "physical_name": "line_number",
+              "type": "INT",
+              "nullable": false,
+              "description": "Service line sequence within the owning header.",
+              "glossary": "Line Number",
+              "sensitivity": "health",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "health"
+              },
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "service_code",
+              "physical_name": "service_code",
+              "type": "STRING",
+              "nullable": false,
+              "description": "Source service identifier; no licensed code list is distributed.",
+              "glossary": "Service Code",
+              "sensitivity": "health",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "health"
+              },
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "service_date",
+              "physical_name": "service_date",
+              "type": "DATE",
+              "nullable": false,
+              "description": "Date when the line's service was performed.",
+              "glossary": "Service Date",
+              "sensitivity": "health",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "health"
+              },
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "service_quantity",
+              "physical_name": "service_quantity",
+              "type": "DECIMAL(12,3)",
+              "nullable": false,
+              "description": "Quantity billed for the service line.",
+              "glossary": "Service Quantity",
+              "sensitivity": "health",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "health"
+              },
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "unit_price_at_service",
+              "physical_name": "unit_price_at_service",
+              "type": "DECIMAL(18,2)",
+              "nullable": false,
+              "description": "Price recorded at service time, not today's price.",
+              "glossary": "Unit Price At Service",
+              "sensitivity": "health",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "health"
+              },
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": true,
+              "monetary": true
+            }
+          ]
+        },
+        {
+          "name": "adjudication",
+          "physical_name": "adjudication",
+          "classification": "transactional_data",
+          "role": "event",
+          "grain": "One adjudication decision event on a claim version.",
+          "description": "Auditable decision event; several decisions can exist for a claim.",
+          "steward": "example_data_stewards",
+          "subdomain": "claim_processing",
+          "primary_key": [
+            "adjudication_id"
+          ],
+          "business_keys": [],
+          "tags": {},
+          "standalone_reason": "",
+          "attributes": [
+            {
+              "name": "adjudication_id",
+              "physical_name": "adjudication_id",
+              "type": "BIGINT",
+              "nullable": false,
+              "description": "Stable surrogate identifier for this record.",
+              "glossary": "Adjudication Identifier",
+              "sensitivity": "health",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "health"
+              },
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "header_id",
+              "physical_name": "header_id",
+              "type": "BIGINT",
+              "nullable": false,
+              "description": "Claim version receiving the adjudication event.",
+              "glossary": "Header Identifier",
+              "sensitivity": "health",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "health"
+              },
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "decided_at",
+              "physical_name": "decided_at",
+              "type": "TIMESTAMP",
+              "nullable": false,
+              "description": "Timestamp when the decision was recorded.",
+              "glossary": "Decided At",
+              "sensitivity": "health",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "health"
+              },
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "decision_outcome",
+              "physical_name": "decision_outcome",
+              "type": "STRING",
+              "nullable": false,
+              "description": "Decision result for this event.",
+              "glossary": "Decision Outcome",
+              "sensitivity": "health",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "health"
+              },
+              "references": [],
+              "allowed_values": [
+                "approved",
+                "denied",
+                "pended"
+              ],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "decision_reason",
+              "physical_name": "decision_reason",
+              "type": "STRING",
+              "nullable": false,
+              "description": "Business rationale for the decision event.",
+              "glossary": "Decision Reason",
+              "sensitivity": "health",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "health"
+              },
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": false,
+              "monetary": false
+            },
+            {
+              "name": "allowed_amount_at_decision",
+              "physical_name": "allowed_amount_at_decision",
+              "type": "DECIMAL(18,2)",
+              "nullable": true,
+              "description": "Allowed amount at this decision event.",
+              "glossary": "Allowed Amount At Decision",
+              "sensitivity": "health",
+              "classification": "restricted",
+              "tags": {
+                "sensitivity": "health"
+              },
+              "references": [],
+              "allowed_values": [],
+              "pattern": "",
+              "snapshot": true,
+              "monetary": true
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "id": "rel_enrollment_coverage_identity_id",
+      "source": "enrollment.coverage",
+      "source_columns": [
+        "identity_id"
+      ],
+      "target": "member.identity",
+      "target_columns": [
+        "identity_id"
+      ],
+      "cardinality": "many_to_one",
+      "role": "covered_person",
+      "optional": false,
+      "population_phase": "at_creation",
+      "enrichment_path": "",
+      "hierarchical": false,
+      "justification": "The covered person relationship is required by the declared business grain.",
+      "provenance": [
+        "curated_ecm_concepts"
+      ]
+    },
+    {
+      "id": "rel_enrollment_coverage_health_plan_id",
+      "source": "enrollment.coverage",
+      "source_columns": [
+        "health_plan_id"
+      ],
+      "target": "plan.health_plan",
+      "target_columns": [
+        "health_plan_id"
+      ],
+      "cardinality": "many_to_one",
+      "role": "governing_plan",
+      "optional": false,
+      "population_phase": "at_creation",
+      "enrichment_path": "",
+      "hierarchical": false,
+      "justification": "The governing plan relationship is required by the declared business grain.",
+      "provenance": [
+        "curated_ecm_concepts"
+      ]
+    },
+    {
+      "id": "rel_network_participation_provider_id",
+      "source": "network.participation",
+      "source_columns": [
+        "provider_id"
+      ],
+      "target": "provider.provider",
+      "target_columns": [
+        "provider_id"
+      ],
+      "cardinality": "many_to_one",
+      "role": "participating_provider",
+      "optional": false,
+      "population_phase": "at_creation",
+      "enrichment_path": "",
+      "hierarchical": false,
+      "justification": "The participating provider relationship is required by the declared business grain.",
+      "provenance": [
+        "curated_ecm_concepts"
+      ]
+    },
+    {
+      "id": "rel_network_participation_provider_network_id",
+      "source": "network.participation",
+      "source_columns": [
+        "provider_network_id"
+      ],
+      "target": "network.provider_network",
+      "target_columns": [
+        "provider_network_id"
+      ],
+      "cardinality": "many_to_one",
+      "role": "accepting_network",
+      "optional": false,
+      "population_phase": "at_creation",
+      "enrichment_path": "",
+      "hierarchical": false,
+      "justification": "The accepting network relationship is required by the declared business grain.",
+      "provenance": [
+        "curated_ecm_concepts"
+      ]
+    },
+    {
+      "id": "rel_claim_header_coverage_id",
+      "source": "claim.header",
+      "source_columns": [
+        "coverage_id"
+      ],
+      "target": "enrollment.coverage",
+      "target_columns": [
+        "coverage_id"
+      ],
+      "cardinality": "many_to_one",
+      "role": "service_coverage",
+      "optional": false,
+      "population_phase": "at_creation",
+      "enrichment_path": "",
+      "hierarchical": false,
+      "justification": "The service coverage relationship is required by the declared business grain.",
+      "provenance": [
+        "curated_ecm_concepts"
+      ]
+    },
+    {
+      "id": "rel_claim_header_billing_provider_id",
+      "source": "claim.header",
+      "source_columns": [
+        "billing_provider_id"
+      ],
+      "target": "provider.provider",
+      "target_columns": [
+        "provider_id"
+      ],
+      "cardinality": "many_to_one",
+      "role": "billing",
+      "optional": false,
+      "population_phase": "at_creation",
+      "enrichment_path": "",
+      "hierarchical": false,
+      "justification": "The billing relationship is required by the declared business grain.",
+      "provenance": [
+        "curated_ecm_concepts"
+      ]
+    },
+    {
+      "id": "rel_claim_header_rendering_provider_id",
+      "source": "claim.header",
+      "source_columns": [
+        "rendering_provider_id"
+      ],
+      "target": "provider.provider",
+      "target_columns": [
+        "provider_id"
+      ],
+      "cardinality": "many_to_one",
+      "role": "rendering",
+      "optional": true,
+      "population_phase": "later",
+      "enrichment_path": "Resolve the rendering provider during claim enrichment before completion.",
+      "hierarchical": false,
+      "justification": "The rendering relationship is required by the declared business grain.",
+      "provenance": [
+        "curated_ecm_concepts"
+      ]
+    },
+    {
+      "id": "rel_claim_header_claim_status_id",
+      "source": "claim.header",
+      "source_columns": [
+        "claim_status_id"
+      ],
+      "target": "claim.claim_status",
+      "target_columns": [
+        "claim_status_id"
+      ],
+      "cardinality": "many_to_one",
+      "role": "processing_state",
+      "optional": false,
+      "population_phase": "at_creation",
+      "enrichment_path": "",
+      "hierarchical": false,
+      "justification": "The processing state relationship is required by the declared business grain.",
+      "provenance": [
+        "curated_ecm_concepts"
+      ]
+    },
+    {
+      "id": "rel_claim_line_header_id",
+      "source": "claim.line",
+      "source_columns": [
+        "header_id"
+      ],
+      "target": "claim.header",
+      "target_columns": [
+        "header_id"
+      ],
+      "cardinality": "many_to_one",
+      "role": "owning_submission",
+      "optional": false,
+      "population_phase": "at_creation",
+      "enrichment_path": "",
+      "hierarchical": false,
+      "justification": "The owning submission relationship is required by the declared business grain.",
+      "provenance": [
+        "curated_ecm_concepts"
+      ]
+    },
+    {
+      "id": "rel_claim_adjudication_header_id",
+      "source": "claim.adjudication",
+      "source_columns": [
+        "header_id"
+      ],
+      "target": "claim.header",
+      "target_columns": [
+        "header_id"
+      ],
+      "cardinality": "many_to_one",
+      "role": "decided_submission",
+      "optional": false,
+      "population_phase": "at_creation",
+      "enrichment_path": "",
+      "hierarchical": false,
+      "justification": "The decided submission relationship is required by the declared business grain.",
+      "provenance": [
+        "curated_ecm_concepts"
+      ]
+    }
+  ],
+  "metric_views": [
+    {
+      "name": "claim_financials",
+      "schema": "metrics",
+      "source": "claim.header",
+      "grain": "Claim submission versions grouped by service month and currency; not unique business claims.",
+      "description": "Submitted-version financial totals without cross-source join fan-out.",
+      "dimensions": [
+        {
+          "name": "service_month",
+          "expression": "DATE_TRUNC('MONTH', service_date)",
+          "columns": [
+            "service_date"
+          ]
+        },
+        {
+          "name": "currency_code",
+          "expression": "currency_code",
+          "columns": [
+            "currency_code"
+          ]
+        }
+      ],
+      "measures": [
+        {
+          "name": "submission_count",
+          "expression": "COUNT(1)",
+          "columns": []
+        },
+        {
+          "name": "total_billed_amount",
+          "expression": "SUM(billed_amount)",
+          "columns": [
+            "billed_amount"
+          ]
+        },
+        {
+          "name": "total_paid_amount",
+          "expression": "SUM(paid_amount)",
+          "columns": [
+            "paid_amount"
+          ]
+        },
+        {
+          "name": "paid_to_billed_ratio",
+          "expression": "SUM(paid_amount) / NULLIF(SUM(billed_amount), 0)",
+          "columns": [
+            "paid_amount",
+            "billed_amount"
+          ]
+        }
+      ]
+    }
+  ],
+  "requirements": [
+    {
+      "id": "REQ-01",
+      "description": "Keep the six named domains and the ten teaching products.",
+      "objects": [
+        "member",
+        "plan",
+        "enrollment",
+        "provider",
+        "network",
+        "claim"
+      ],
+      "checks": [
+        "PROTECTED"
+      ],
+      "manual": false
+    },
+    {
+      "id": "REQ-02",
+      "description": "Declare valid typed keys and required claim/coverage dependencies.",
+      "objects": [
+        "claim.adjudication",
+        "claim.header",
+        "claim.line",
+        "enrollment.coverage",
+        "network.participation"
+      ],
+      "checks": [
+        "PK",
+        "FK_TARGET",
+        "FK_TYPES"
+      ],
+      "manual": false
+    },
+    {
+      "id": "REQ-03",
+      "description": "Provide glossary and declared personal-data classification.",
+      "objects": [
+        "member.identity"
+      ],
+      "checks": [
+        "METADATA",
+        "SENSITIVITY"
+      ],
+      "manual": false
+    },
+    {
+      "id": "REQ-04",
+      "description": "Provide one single-source claim financial projection.",
+      "objects": [
+        "metrics.claim_financials"
+      ],
+      "checks": [
+        "METRICS"
+      ],
+      "manual": false
+    },
+    {
+      "id": "REQ-05",
+      "description": "Keep deterministic JSON/SQL/DBML representations consistent.",
+      "objects": [
+        "claim.header",
+        "claim.line"
+      ],
+      "checks": [
+        "ARTIFACTS"
+      ],
+      "manual": false
+    },
+    {
+      "id": "REQ-06",
+      "description": "Review real business cardinality, snapshot ownership, and temporal semantics.",
+      "objects": [
+        "network.participation",
+        "claim.line",
+        "enrollment.coverage"
+      ],
+      "checks": [
+        "manual"
+      ],
+      "manual": true
+    }
+  ],
+  "protected": {
+    "domains": [
+      "member",
+      "plan",
+      "enrollment",
+      "provider",
+      "network",
+      "claim"
+    ],
+    "products": [
+      "member.identity",
+      "plan.health_plan",
+      "enrollment.coverage",
+      "provider.provider",
+      "network.provider_network",
+      "network.participation",
+      "claim.claim_status",
+      "claim.header",
+      "claim.line",
+      "claim.adjudication"
+    ],
+    "exact_domain_count": 6,
+    "exact_product_count": 10
+  }
+}

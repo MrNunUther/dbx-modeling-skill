@@ -1,0 +1,26 @@
+{
+  "naming": "snake_case",
+  "key_type": "BIGINT",
+  "boolean_type": "BOOLEAN",
+  "inline_enum_cap": 6,
+  "graph_policy": "acyclic_with_hierarchy",
+  "division_taxonomy": [
+    "operations",
+    "business",
+    "corporate"
+  ],
+  "advisory": {
+    "division_ratios": {
+      "operations": 0.5,
+      "business": 0.35,
+      "corporate": 0.15
+    },
+    "max_corporate_share": 0.2,
+    "domain_name_length": 20,
+    "product_name_length": 30,
+    "attribute_name_length": 50,
+    "description_width": 256,
+    "association_share": 0.15,
+    "sizing_bands": null
+  }
+}

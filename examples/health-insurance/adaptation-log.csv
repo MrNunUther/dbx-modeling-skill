@@ -1,0 +1,13 @@
+Source_Concept,Target,Decision
+member.identity/member.subscriber,member.identity,Scope one insured identity; subscriber/household role distinctions deferred. No automatic duplicate identity copy.
+plan.health_plan,plan.health_plan,Plan design is versioned explicitly; corporate/vendor/pricing extras excluded from teaching scope.
+enrollment.transaction/enrollment_eligibility_span,enrollment.coverage,One effective coverage interval with person and plan dependencies; EDI transaction/batch grain excluded.
+provider.provider,provider.provider,Keep provider identity only; no NPI code/data list or employee/vendor dependencies.
+network.provider_network/provider_network_participation,network.provider_network/network.participation,Model genuine provider-network reciprocity and interval-owned participation attributes.
+claim.header,claim.header,"Keep submission-version grain, source uniqueness, DECIMAL snapshots, distinct billing/rendering roles; remove unrelated employer/finance FKs."
+claim.line,claim.line,"Keep service-line grain and event-time unit price; source service codes are identifiers, not fabricated FK targets."
+claim.adjudication,claim.adjudication,Decision event grain allows multiple decisions per header; current header totals and event snapshots are explicitly different.
+claim.header.claim_status,claim.claim_status,Promote seven-plus process states to a reference; no mandatory sample-data generator.
+claim metric SQL,metrics.claim_financials,Single-source submission totals grouped by currency; no DOUBLE casts or uppercase status mismatch; denial-rate KPI omitted because status labels are on the lookup.
+all exports,canonical contract,Resolve physical names from canonical attributes; types and outputs generated together; no full seed export copied.
+tags/tag_set,structured tags,Remove structural PK tags; explicit personal classification plus glossary discovery tags; no legal compliance assertion.

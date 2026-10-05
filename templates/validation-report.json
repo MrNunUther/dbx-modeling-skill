@@ -1,0 +1,27 @@
+{
+  "contract_version": "1.0.0",
+  "model_version": "1.0.0",
+  "evidence_level": "designed",
+  "status": "not_run",
+  "checks": [
+    {
+      "check_id": "PHYSICAL",
+      "rule_id": "DBX-VERIFY-001",
+      "object": "catalog",
+      "status": "not_run",
+      "severity": "error",
+      "expected": "Authorized catalog parity evidence.",
+      "observed": "No workspace verification attempted.",
+      "evidence": "No live evidence.",
+      "remediation": "Obtain explicit read-only verification authorization."
+    }
+  ],
+  "coverage": {
+    "applicable": 0,
+    "verified_static": 0,
+    "manual_unverified": 0
+  },
+  "limitations": [
+    "Template only; no verification has occurred."
+  ]
+}

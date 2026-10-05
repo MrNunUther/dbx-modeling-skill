@@ -1,0 +1,293 @@
+{
+  "contract_version": "1.0.0",
+  "model_version": "1.0.0",
+  "evidence_level": "static",
+  "status": "pass",
+  "checks": [
+    {
+      "check_id": "CONNECTIVITY",
+      "rule_id": "DBX-GRAPH-002",
+      "object": "model",
+      "status": "pass",
+      "severity": "error",
+      "expected": "Applicable bounded checks satisfied.",
+      "observed": "No violations found in the supplied contract.",
+      "evidence": "model.json",
+      "remediation": "No action required at this evidence level."
+    },
+    {
+      "check_id": "ENUMS",
+      "rule_id": "DBX-ENUM-001",
+      "object": "model",
+      "status": "pass",
+      "severity": "error",
+      "expected": "Applicable bounded checks satisfied.",
+      "observed": "No violations found in the supplied contract.",
+      "evidence": "model.json",
+      "remediation": "No action required at this evidence level."
+    },
+    {
+      "check_id": "FK_TARGET",
+      "rule_id": "DBX-KEY-002",
+      "object": "model",
+      "status": "pass",
+      "severity": "error",
+      "expected": "Applicable bounded checks satisfied.",
+      "observed": "No violations found in the supplied contract.",
+      "evidence": "model.json",
+      "remediation": "No action required at this evidence level."
+    },
+    {
+      "check_id": "FK_TYPES",
+      "rule_id": "DBX-KEY-003",
+      "object": "model",
+      "status": "pass",
+      "severity": "error",
+      "expected": "Applicable bounded checks satisfied.",
+      "observed": "No violations found in the supplied contract.",
+      "evidence": "model.json",
+      "remediation": "No action required at this evidence level."
+    },
+    {
+      "check_id": "GRAPH",
+      "rule_id": "DBX-GRAPH-001",
+      "object": "model",
+      "status": "pass",
+      "severity": "error",
+      "expected": "Applicable bounded checks satisfied.",
+      "observed": "No violations found in the supplied contract.",
+      "evidence": "model.json",
+      "remediation": "No action required at this evidence level."
+    },
+    {
+      "check_id": "METADATA",
+      "rule_id": "DBX-META-001",
+      "object": "model",
+      "status": "pass",
+      "severity": "error",
+      "expected": "Applicable bounded checks satisfied.",
+      "observed": "No violations found in the supplied contract.",
+      "evidence": "model.json",
+      "remediation": "No action required at this evidence level."
+    },
+    {
+      "check_id": "METRICS",
+      "rule_id": "DBX-MET-001",
+      "object": "model",
+      "status": "pass",
+      "severity": "error",
+      "expected": "Applicable bounded checks satisfied.",
+      "observed": "No violations found in the supplied contract.",
+      "evidence": "model.json",
+      "remediation": "No action required at this evidence level."
+    },
+    {
+      "check_id": "NAMES",
+      "rule_id": "DBX-NAME-001",
+      "object": "model",
+      "status": "pass",
+      "severity": "error",
+      "expected": "Applicable bounded checks satisfied.",
+      "observed": "No violations found in the supplied contract.",
+      "evidence": "model.json",
+      "remediation": "No action required at this evidence level."
+    },
+    {
+      "check_id": "OBJECTS",
+      "rule_id": "DBX-OBJ-001",
+      "object": "model",
+      "status": "pass",
+      "severity": "error",
+      "expected": "Applicable bounded checks satisfied.",
+      "observed": "No violations found in the supplied contract.",
+      "evidence": "model.json",
+      "remediation": "No action required at this evidence level."
+    },
+    {
+      "check_id": "PK",
+      "rule_id": "DBX-KEY-001",
+      "object": "model",
+      "status": "pass",
+      "severity": "error",
+      "expected": "Applicable bounded checks satisfied.",
+      "observed": "No violations found in the supplied contract.",
+      "evidence": "model.json",
+      "remediation": "No action required at this evidence level."
+    },
+    {
+      "check_id": "PROTECTED",
+      "rule_id": "DBX-INTENT-001",
+      "object": "model",
+      "status": "pass",
+      "severity": "error",
+      "expected": "Applicable bounded checks satisfied.",
+      "observed": "No violations found in the supplied contract.",
+      "evidence": "model.json",
+      "remediation": "No action required at this evidence level."
+    },
+    {
+      "check_id": "RELATIONS",
+      "rule_id": "DBX-REL-001",
+      "object": "model",
+      "status": "pass",
+      "severity": "error",
+      "expected": "Applicable bounded checks satisfied.",
+      "observed": "No violations found in the supplied contract.",
+      "evidence": "model.json",
+      "remediation": "No action required at this evidence level."
+    },
+    {
+      "check_id": "REQUIREMENTS",
+      "rule_id": "DBX-VERIFY-002",
+      "object": "model",
+      "status": "pass",
+      "severity": "error",
+      "expected": "Applicable bounded checks satisfied.",
+      "observed": "No violations found in the supplied contract.",
+      "evidence": "model.json",
+      "remediation": "No action required at this evidence level."
+    },
+    {
+      "check_id": "ROLES",
+      "rule_id": "DBX-REL-002",
+      "object": "model",
+      "status": "pass",
+      "severity": "error",
+      "expected": "Applicable bounded checks satisfied.",
+      "observed": "No violations found in the supplied contract.",
+      "evidence": "model.json",
+      "remediation": "No action required at this evidence level."
+    },
+    {
+      "check_id": "SENSITIVITY",
+      "rule_id": "DBX-META-002",
+      "object": "model",
+      "status": "pass",
+      "severity": "error",
+      "expected": "Applicable bounded checks satisfied.",
+      "observed": "No violations found in the supplied contract.",
+      "evidence": "model.json",
+      "remediation": "No action required at this evidence level."
+    },
+    {
+      "check_id": "SHAPE",
+      "rule_id": "DBX-SHAPE-001",
+      "object": "model",
+      "status": "pass",
+      "severity": "error",
+      "expected": "Applicable bounded checks satisfied.",
+      "observed": "No violations found in the supplied contract.",
+      "evidence": "model.json",
+      "remediation": "No action required at this evidence level."
+    },
+    {
+      "check_id": "TAGS",
+      "rule_id": "DBX-META-003",
+      "object": "model",
+      "status": "pass",
+      "severity": "error",
+      "expected": "Applicable bounded checks satisfied.",
+      "observed": "No violations found in the supplied contract.",
+      "evidence": "model.json",
+      "remediation": "No action required at this evidence level."
+    },
+    {
+      "check_id": "TYPES",
+      "rule_id": "DBX-TYPE-001",
+      "object": "model",
+      "status": "pass",
+      "severity": "error",
+      "expected": "Applicable bounded checks satisfied.",
+      "observed": "No violations found in the supplied contract.",
+      "evidence": "model.json",
+      "remediation": "No action required at this evidence level."
+    },
+    {
+      "check_id": "PACKAGE",
+      "rule_id": "DBX-PACK-001",
+      "object": "model",
+      "status": "pass",
+      "severity": "error",
+      "expected": "Applicable bounded checks satisfied.",
+      "observed": "No violations found in the supplied contract.",
+      "evidence": "model.json",
+      "remediation": "No action required at this evidence level."
+    },
+    {
+      "check_id": "PACKAGE",
+      "rule_id": "DBX-PACK-001",
+      "object": "model",
+      "status": "pass",
+      "severity": "error",
+      "expected": "Applicable bounded checks satisfied.",
+      "observed": "No violations found in the supplied contract.",
+      "evidence": "model.json",
+      "remediation": "No action required at this evidence level."
+    },
+    {
+      "check_id": "SOURCE_MAP",
+      "rule_id": "DBX-MAP-001",
+      "object": "model",
+      "status": "pass",
+      "severity": "error",
+      "expected": "Applicable bounded checks satisfied.",
+      "observed": "No violations found in the supplied contract.",
+      "evidence": "model.json",
+      "remediation": "No action required at this evidence level."
+    },
+    {
+      "check_id": "ARTIFACTS",
+      "rule_id": "DBX-ART-001",
+      "object": "example",
+      "status": "pass",
+      "severity": "error",
+      "expected": "Canonical file parity.",
+      "observed": "All supported derivatives agree; not live parity.",
+      "evidence": "model.json",
+      "remediation": "No action required at this evidence level."
+    },
+    {
+      "check_id": "WORKSPACE",
+      "rule_id": "DBX-VERIFY-001",
+      "object": "catalog",
+      "status": "not_run",
+      "severity": "error",
+      "expected": "Actual authorized workspace evidence.",
+      "observed": "Offline release; no connection or execution.",
+      "evidence": "No live evidence.",
+      "remediation": "Obtain explicit scoped authorization and collect actual results."
+    },
+    {
+      "check_id": "PHYSICAL",
+      "rule_id": "DBX-VERIFY-001",
+      "object": "catalog",
+      "status": "not_run",
+      "severity": "error",
+      "expected": "Actual authorized workspace evidence.",
+      "observed": "Offline release; no connection or execution.",
+      "evidence": "No live evidence.",
+      "remediation": "Obtain explicit scoped authorization and collect actual results."
+    },
+    {
+      "check_id": "DATA",
+      "rule_id": "DBX-VERIFY-001",
+      "object": "rows",
+      "status": "not_run",
+      "severity": "error",
+      "expected": "Actual authorized workspace evidence.",
+      "observed": "Offline release; no connection or execution.",
+      "evidence": "No live evidence.",
+      "remediation": "Obtain explicit scoped authorization and collect actual results."
+    }
+  ],
+  "coverage": {
+    "applicable": 6,
+    "verified_static": 5,
+    "manual_unverified": 1
+  },
+  "limitations": [
+    "Static shape/structural/file-parity checks only; no workspace compatibility, physical parity, or data-integrity evidence.",
+    "Business meaning, sensitivity discovery, snapshots, process coverage, and regulatory correctness require manual review.",
+    "Supported metric expressions and deterministic representations are bounded, not general SQL/YAML parsing."
+  ]
+}

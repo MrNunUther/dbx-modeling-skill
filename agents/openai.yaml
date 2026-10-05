@@ -1,0 +1,7 @@
+interface:
+  display_name: "Databricks Enterprise Modeling"
+  short_description: "Design and review traceable enterprise data models."
+  icon_small: "./assets/modeling.svg"
+  icon_large: "./assets/modeling.png"
+  brand_color: "#245C73"
+  default_prompt: "Use $dbx-modeling-skill to design or review a business-aligned enterprise model with explicit grain, ownership, keys, governance, and honest validation evidence. Do not deploy without authorization."

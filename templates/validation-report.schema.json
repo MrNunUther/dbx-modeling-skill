@@ -1,0 +1,136 @@
+{
+  "type": "object",
+  "properties": {
+    "contract_version": {
+      "const": "1.0.0"
+    },
+    "model_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "evidence_level": {
+      "enum": [
+        "designed",
+        "static",
+        "workspace",
+        "physical",
+        "data"
+      ]
+    },
+    "status": {
+      "enum": [
+        "pass",
+        "fail",
+        "blocked",
+        "not_run"
+      ]
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "check_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rule_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "object": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "enum": [
+              "pass",
+              "fail",
+              "blocked",
+              "not_run",
+              "not_applicable"
+            ]
+          },
+          "severity": {
+            "enum": [
+              "error",
+              "advisory"
+            ]
+          },
+          "expected": {
+            "type": "string",
+            "minLength": 1
+          },
+          "observed": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence": {
+            "type": "string",
+            "minLength": 1
+          },
+          "remediation": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "check_id",
+          "rule_id",
+          "object",
+          "status",
+          "severity",
+          "expected",
+          "observed",
+          "evidence",
+          "remediation"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "coverage": {
+      "type": "object",
+      "properties": {
+        "applicable": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "verified_static": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "manual_unverified": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "applicable",
+        "verified_static",
+        "manual_unverified"
+      ],
+      "additionalProperties": false
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    }
+  },
+  "required": [
+    "contract_version",
+    "model_version",
+    "evidence_level",
+    "status",
+    "checks",
+    "coverage",
+    "limitations"
+  ],
+  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "dbx-modeling-skill validation report 1.0.0"
+}

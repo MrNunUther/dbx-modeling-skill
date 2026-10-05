@@ -1,0 +1,126 @@
+// Re-authored conceptual diagram; matched to the canonical model.
+
+Project teaching_slice {
+
+  database_type: 'Databricks'
+
+}
+
+Table member.identity {
+  identity_id "BIGINT" [pk, not null]
+  source_member_number "STRING" [not null]
+  given_name "STRING" [not null]
+  family_name "STRING" [not null]
+  date_of_birth "DATE" [not null]
+  identity_status "STRING" [not null]
+  created_at "TIMESTAMP" [not null]
+}
+
+Table plan.health_plan {
+  health_plan_id "BIGINT" [pk, not null]
+  plan_code "STRING" [not null]
+  design_version "INT" [not null]
+  plan_name "STRING" [not null]
+  effective_from "DATE" [not null]
+  effective_to "DATE"
+  currency_code "STRING" [not null]
+  deductible_amount "DECIMAL(18,2)" [not null]
+}
+
+Table enrollment.coverage {
+  coverage_id "BIGINT" [pk, not null]
+  identity_id "BIGINT" [not null]
+  health_plan_id "BIGINT" [not null]
+  coverage_from "DATE" [not null]
+  coverage_to "DATE"
+  coverage_status "STRING" [not null]
+  elected_at "TIMESTAMP" [not null]
+}
+
+Table provider.provider {
+  provider_id "BIGINT" [pk, not null]
+  provider_number "STRING" [not null]
+  provider_name "STRING" [not null]
+  provider_kind "STRING" [not null]
+  provider_status "STRING" [not null]
+  created_at "TIMESTAMP" [not null]
+}
+
+Table network.provider_network {
+  provider_network_id "BIGINT" [pk, not null]
+  network_code "STRING" [not null]
+  network_name "STRING" [not null]
+  network_status "STRING" [not null]
+}
+
+Table network.participation {
+  participation_id "BIGINT" [pk, not null]
+  provider_id "BIGINT" [not null]
+  provider_network_id "BIGINT" [not null]
+  participation_from "DATE" [not null]
+  participation_to "DATE"
+  participation_status "STRING" [not null]
+  created_at "TIMESTAMP" [not null]
+}
+
+Table claim.claim_status {
+  claim_status_id "BIGINT" [pk, not null]
+  status_code "STRING" [not null]
+  status_label "STRING" [not null]
+  is_terminal "BOOLEAN" [not null]
+}
+
+Table claim.header {
+  header_id "BIGINT" [pk, not null]
+  coverage_id "BIGINT" [not null]
+  billing_provider_id "BIGINT" [not null]
+  rendering_provider_id "BIGINT"
+  claim_status_id "BIGINT" [not null]
+  claim_number "STRING" [not null]
+  submission_version "INT" [not null]
+  received_at "TIMESTAMP" [not null]
+  service_date "DATE" [not null]
+  currency_code "STRING" [not null]
+  billed_amount "DECIMAL(18,2)" [not null]
+  allowed_amount "DECIMAL(18,2)"
+  paid_amount "DECIMAL(18,2)"
+}
+
+Table claim.line {
+  line_id "BIGINT" [pk, not null]
+  header_id "BIGINT" [not null]
+  line_number "INT" [not null]
+  service_code "STRING" [not null]
+  service_date "DATE" [not null]
+  service_quantity "DECIMAL(12,3)" [not null]
+  unit_price_at_service "DECIMAL(18,2)" [not null]
+}
+
+Table claim.adjudication {
+  adjudication_id "BIGINT" [pk, not null]
+  header_id "BIGINT" [not null]
+  decided_at "TIMESTAMP" [not null]
+  decision_outcome "STRING" [not null]
+  decision_reason "STRING" [not null]
+  allowed_amount_at_decision "DECIMAL(18,2)"
+}
+
+Ref: enrollment.coverage.(identity_id) > member.identity.(identity_id)
+
+Ref: enrollment.coverage.(health_plan_id) > plan.health_plan.(health_plan_id)
+
+Ref: network.participation.(provider_id) > provider.provider.(provider_id)
+
+Ref: network.participation.(provider_network_id) > network.provider_network.(provider_network_id)
+
+Ref: claim.header.(coverage_id) > enrollment.coverage.(coverage_id)
+
+Ref: claim.header.(billing_provider_id) > provider.provider.(provider_id)
+
+Ref: claim.header.(rendering_provider_id) > provider.provider.(provider_id)
+
+Ref: claim.header.(claim_status_id) > claim.claim_status.(claim_status_id)
+
+Ref: claim.line.(header_id) > claim.header.(header_id)
+
+Ref: claim.adjudication.(header_id) > claim.header.(header_id)

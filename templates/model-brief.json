@@ -1,0 +1,26 @@
+{
+  "business_name": "",
+  "industry": "",
+  "jurisdiction": "",
+  "model_version": "1.0.0",
+  "operation": "design",
+  "scope": "reduced_core",
+  "processes": [],
+  "protected_names": [],
+  "exact_counts": {},
+  "approximate_targets": {},
+  "source_versions": [],
+  "required_artifacts": [
+    "model",
+    "traceability",
+    "report"
+  ],
+  "out_of_scope": [],
+  "assumptions": [],
+  "unresolved_decisions": [],
+  "authorization": {
+    "workspace_access": false,
+    "writes": false,
+    "cleanup": false
+  }
+}
