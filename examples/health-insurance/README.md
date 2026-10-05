@@ -6,6 +6,12 @@ See [adaptation log](adaptation-log.csv) and
 
 **Scope:** 6 domains, 10 products, 69 attributes, 10 relationships, and 1 metric
 view. This is a bounded reduced core, not a complete health insurer system.
+
+**Deliberately thin.** At about 7 columns per product, this slice shows contract,
+grain, and relationship patterns. It is not a depth reference. Default output
+has enterprise depth, about 25–48 columns per product; see
+[enterprise depth](../../references/enterprise-depth.md) and the
+[depth example](../enterprise-depth/README.md).
 It has no sample rows, compliance certification, deployment, or live evidence.
 
 ## Reading paths

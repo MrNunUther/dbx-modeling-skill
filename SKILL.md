@@ -46,6 +46,7 @@ documentation and disclose unsupported execution instead of guessing commands.
 | Change a model | [Evolution](references/model-evolution.md) | New version and impact proposal |
 | Prepare live checks | [Authorization](references/authorized-live-validation.md) | Explicitly scoped verification request |
 | Interpret seed limitations | [Source assessment](references/source-assessment.md) | Provenance and adaptation decisions |
+| Reach enterprise depth (default) | [Enterprise depth](references/enterprise-depth.md) | Class checklists filled with real columns |
 | Shape any table or model (default) | [Shape topology](references/shape-topology.md) | `advise` findings and remodel; `targets` for full scope |
 
 Load only relevant references. Use [portable instructions](rules/instructions.md)
@@ -69,10 +70,21 @@ Use the [brief](templates/model-brief.json) and
 - Primitive relational attributes; reference entities for categories above the
   configured six-value inline cap.
 - Acyclic dependency graph except explicitly justified hierarchical self-edges.
+- **Enterprise depth** ([enterprise depth](references/enterprise-depth.md)):
+  - about 25–48 real columns for each master or transactional product;
+  - 3–13 references for each transaction;
+  - 8–11 products per domain, with about two-thirds of FKs crossing domains;
+  - product descriptions of about 500 characters;
+  - about 0.8 metric views per product;
+  - no shared boilerplate block beyond the created/updated stamps, and no stock
+    sentences (`check` discounts both).
 - No automatic connection, deployment, grants, mutations, or cleanup.
 
 Sizing and division percentages are advisory. Never enlarge a deliberately small
-scope to satisfy a generic ratio. Preserve exact requested names/counts. Where a
+scope to satisfy a generic ratio. A bounded scope limits breadth (which domains),
+not depth. Produce thin products only when the user explicitly asks for a teaching,
+conceptual, or logical-only slice. The health-insurance example is deliberately
+thin and is not a depth reference. Preserve exact requested names/counts. Where a
 protected name cannot map to a valid identifier, ask for an explicit mapping.
 
 ## Workflow
@@ -85,7 +97,10 @@ protected name cannot map to a valid identifier, ask for an explicit mapping.
 3. **Declare grain before attributes.** Describe one row, lifecycle, identity,
    role, business uniqueness, temporal needs, and product classification.
 4. **Design attributes and keys.** Use explicit types/nullability, real business
-   fields, glossary terms, standards references, and structured metadata.
+   fields, glossary terms, standards references, and structured metadata. Walk the
+   class coverage checklist (identification, classification, lifecycle, events,
+   amounts, measures, flags, source, audit) instead of stopping at a minimal
+   form.
 5. **Establish relationships.** Document cardinality, role, optionality,
    population phase, target key, and business justification. Include dependency
    closure; do not create phantom tables to satisfy name-pattern checks.
@@ -107,7 +122,8 @@ or receive is compared with the common forms in
 - For an existing or user-supplied table, run `advise` first. Propose the remodel
   with a column map rather than reproducing its shape.
 - In step 8, run `advise`, and run `check` for multi-product models
-  (`--ignore-scale` when bounded).
+  (a bounded scope is compared with bounded agent slices automatically; about 80
+  or above reads as agent-like).
 - Use `targets` before step 2 only when a full MVM/ECM scope is requested.
 
 Bands guide shape; they never override scope, protected names, or semantics.
@@ -208,7 +224,7 @@ python3 -m venv .venv
 .venv/bin/python scripts/validate_skill.py --root .
 .venv/bin/python -m unittest discover -s tests -p 'test_*.py'
 .venv/bin/python scripts/shape_profile.py advise MODEL_OR_TABLE.sql --envelope templates/shape-envelope.json
-.venv/bin/python scripts/shape_profile.py check MODEL --envelope templates/shape-envelope.json --scope mvm --format text
+.venv/bin/python scripts/shape_profile.py check MODEL --envelope templates/shape-envelope.json --scope mvm --format text --min-composite 80
 ```
 
 These check the bounded MVP contract and deterministic example representations.

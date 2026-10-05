@@ -7,6 +7,9 @@ Source repositories: databricks-agent-skills; lakehouse-industry-data-models.
 Modification notice: dbx-modeling-skill 0.1.0 independently reconciles source rules,
 re-authors portable instructions and examples, and adds contracts/offline checks.
 The shape envelope holds only aggregate statistics derived from published agent exports.
+Its product classifier stores per-class counts of generic name tokens, such as `status`
+or `amount`, that occur in at least eight industries. It holds no product
+definitions, descriptions, or industry-specific model content.
 It is not an official Databricks product or an unmodified upstream distribution.
 Neutral modeling icons are independently authored; no trademark endorsement intended.
 

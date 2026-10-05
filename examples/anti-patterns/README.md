@@ -45,6 +45,8 @@ The remaining advisories say the products are narrower than the corpus's
 typical depth (25–48 columns). That gap is expected for a teaching slice and is
 not closed by padding. In a real remodel, add the attributes the claims process
 actually needs: adjudication dates, denial reasons, place of service, and so on.
+The [enterprise-depth example](../enterprise-depth/README.md) shows `claim` and
+`member` finished to that depth.
 
 When remodeling an existing physical table, also deliver an old-to-new column map
 and follow the [evolution](../../references/model-evolution.md) rules. Full

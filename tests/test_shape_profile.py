@@ -321,6 +321,30 @@ class AdviseTests(unittest.TestCase):
         for dt in ("master_data", "transactional_data", "association_data", "reference_data"):
             self.assertIn("attributes", self.BANDS["by_data_type"][dt]["metrics"])
 
+    def test_classifier_is_generic_and_held_out(self):
+        classifier = self.BANDS["classifier"]
+        self.assertGreaterEqual(classifier["leave_one_out_accuracy"], 0.75)
+        self.assertGreaterEqual(classifier["min_industries"], 8)
+        self.assertEqual(len(classifier["features"]), len(classifier["counts"]))
+        remodel = self.advise_file("examples/anti-patterns/claim_remodeled.sql")
+        self.assertEqual(remodel["member.member"]["data_type"], "master_data")
+        self.assertEqual(remodel["claim.claim"]["data_type"], "transactional_data")
+
+    def test_association_needs_two_references(self):
+        product = {"name": "member_role_assignment", "pk": ["member_role_assignment_id"], "data_type": "", "attrs": [
+            dict(name="member_role_assignment_id", type="BIGINT", fk=None, tags=set(), regex=False, description=""),
+            dict(name="role_code", type="STRING", fk=None, tags=set(), regex=False, description="")]}
+        self.assertNotEqual(sp.classify(product, self.BANDS["classifier"]), "association_data")
+
+    def test_enterprise_depth_example_is_complete(self):
+        ir = sp.load(ROOT / "examples/enterprise-depth/claim.sql")
+        report = sp.advise(ir, self.BANDS)
+        by_name = {r["product"]: r for r in report}
+        self.assertEqual(by_name["member.member"]["data_type"], "master_data")
+        self.assertEqual(by_name["claim.claim"]["data_type"], "transactional_data")
+        self.assertTrue(all(r["warnings"] == 0 for r in report))
+        self.assertEqual(sp.product_score(report, self.BANDS)["score"], 100.0)
+
     def test_cli_advise_fail_on_warn(self):
         def run(rel):
             return subprocess.run([sys.executable, str(ROOT / "scripts/shape_profile.py"), "advise", str(ROOT / rel),
@@ -330,6 +354,91 @@ class AdviseTests(unittest.TestCase):
         ok = run("examples/anti-patterns/claim_remodeled.sql")
         self.assertEqual(ok.returncode, 0, ok.stderr)
         self.assertIn("warn=0", ok.stdout)
+
+
+    def test_composite_is_calibrated_and_separates_inputs(self):
+        for scope in ("mvm", "ecm"):
+            calibration = ENVELOPE["scopes"][scope]["composite"]
+            self.assertGreaterEqual(calibration["median"], 80)
+            self.assertGreaterEqual(calibration["product_median"], 85)
+
+        def composite(rel):
+            ir = sp.load(ROOT / rel)
+            model = sp.check(sp.profile(ir), ENVELOPE["scopes"]["mvm"]["bands"], ignore_scale=True)["score"]
+            return sp.composite_score(model, sp.product_score(sp.advise(ir, self.BANDS), self.BANDS))
+        flat, remodel = composite("examples/anti-patterns/claim_flat.sql"), composite("examples/anti-patterns/claim_remodeled.sql")
+        self.assertLess(flat, remodel)
+        self.assertLess(remodel, ENVELOPE["scopes"]["mvm"]["composite"]["min"])
+
+    def test_product_score_excludes_agent_defects(self):
+        product = {"product": "x", "data_type": "master_data", "metrics": {"attributes": 39},
+                   "findings": [{"code": "SHP-FK-05", "severity": "warn"}, {"code": "SHP-FK-03", "severity": "warn"}]}
+        result = sp.product_score([product], self.BANDS)
+        self.assertEqual(result["conformance"], 1.0)
+        self.assertEqual(result["agent_defect_warnings"], 2)
+        self.assertEqual(result["score"], 100.0)
+
+    def test_depad_discounts_boilerplate_only(self):
+        raw = synthesize(sp.targets(ENVELOPE, "mvm", 4))
+        for domain in raw["model"]["domains"]:
+            for product in domain["products"]:
+                for a in product["attributes"]:
+                    if not a["foreign_key_to"] and a["name"] != product["primary_key"] \
+                            and not a["name"].endswith("_timestamp"):
+                        a["name"] = a["column_name"] = f"{product['name']}_{a['name']}"
+        clean_ir = sp.normalize(raw)
+        _, summary = sp.depad(clean_ir)
+        self.assertEqual(summary["stripped_columns"], [])
+        stock = "This supports municipal audit, routing, reconciliation, and reporting."
+        block = ["created_timestamp", "updated_timestamp", "record_quality_score", "lineage_batch_id",
+                 "retention_category_code", "stewardship_review_date"]
+        for domain in raw["model"]["domains"]:
+            for product in domain["products"]:
+                have = {a["name"] for a in product["attributes"]}
+                product["attributes"] += [attr(n, description=f"Column {n}. {stock}") for n in block if n not in have]
+                for a in product["attributes"]:
+                    a["description"] = (a["description"] + " " + stock).strip()
+        padded, summary = sp.depad(sp.normalize(raw))
+        self.assertEqual(len(summary["stripped_columns"]), len(block) - sp.PADDING_ALLOWANCE)
+        self.assertGreater(summary["repeated_sentence_rate"], 0.9)
+        self.assertTrue(all(stock not in a["description"] for p in padded["products"].values() for a in p["attrs"]))
+        widths = lambda ir: sorted(len(p["attrs"]) for p in ir["products"].values())
+        self.assertLessEqual(widths(padded), [w + sp.PADDING_ALLOWANCE for w in widths(clean_ir)])
+        self.assertEqual(sp.depad(dict(clean_ir, products=dict(list(clean_ir["products"].items())[:3])))[1]["stripped_columns"], [])
+
+    def test_slice_reference_is_calibrated(self):
+        for scope in ("mvm", "ecm"):
+            ref = ENVELOPE["scopes"][scope]["slice"]
+            self.assertGreaterEqual(ref["slices"], 45)
+            self.assertGreaterEqual(ref["leave_one_out"]["median"], 80)
+            self.assertGreaterEqual(ref["composite"]["min"], 75)
+
+    def test_slice_ir_drops_references_leaving_the_slice(self):
+        ir = sp.normalize(tiny_agent_model())
+        sliced = sp.slice_ir(ir, {"sales"})
+        self.assertEqual(set(p["name"] for p in sliced["products"].values()), {"order", "order_line"})
+        order = next(p for p in sliced["products"].values() if p["name"] == "order")
+        self.assertNotIn("person_id", [a["name"] for a in order["attrs"]])
+        self.assertTrue(all(e[0] in sliced["products"] and e[1] in sliced["products"] for e in sliced["edges"]))
+
+    def test_cli_check_picks_reference_by_scope(self):
+        def reference(*extra):
+            run = subprocess.run([sys.executable, str(ROOT / "scripts/shape_profile.py"), "check",
+                                  str(ROOT / "examples/health-insurance/model.json"), "--envelope",
+                                  str(ROOT / "templates/shape-envelope.json"), "--scope", "mvm", *extra],
+                                 capture_output=True, text=True)
+            return json.loads(run.stdout)["reference"]
+        self.assertEqual(reference(), "slice")
+        self.assertEqual(reference("--reference", "full"), "full")
+
+    def test_cli_check_reports_composite(self):
+        run = subprocess.run([sys.executable, str(ROOT / "scripts/shape_profile.py"), "check",
+                              str(ROOT / "examples/health-insurance/model.json"), "--envelope",
+                              str(ROOT / "templates/shape-envelope.json"), "--scope", "mvm", "--ignore-scale",
+                              "--format", "text", "--min-composite", "80"], capture_output=True, text=True)
+        self.assertEqual(run.returncode, 1)
+        self.assertIn("composite:", run.stdout)
+        self.assertIn("product score:", run.stdout)
 
 
 if __name__ == "__main__":

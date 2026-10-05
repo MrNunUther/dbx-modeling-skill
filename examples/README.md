@@ -12,4 +12,6 @@ No real person records, clinical code lists, licensed service-code descriptions,
 source workbooks, lineage dumps, or synthetic-data engine are included.
 
 For steering a poorly constructed table toward a common form, see the
-[anti-pattern remodel](anti-patterns/README.md).
+[anti-pattern remodel](anti-patterns/README.md). The health-insurance slice is
+deliberately thin. For the column and metadata depth the skill produces by
+default, see the [enterprise-depth example](enterprise-depth/README.md).

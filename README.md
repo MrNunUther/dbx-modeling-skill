@@ -29,7 +29,11 @@ Example requests:
 - [Model contract](templates/model.schema.json), [brief](templates/model-brief.json),
   [conventions](templates/conventions.json), and validation report templates.
 - A corrected [health-insurance teaching suite](examples/health-insurance/README.md)
-  with matched JSON, SQL, DBML, and traceability.
+  with matched JSON, SQL, DBML, and traceability. It is deliberately thin.
+- [Enterprise-depth](references/enterprise-depth.md) defaults: per-class coverage
+  checklists and metadata depth, with a finished
+  [depth example](examples/enterprise-depth/README.md). A bounded scope limits
+  breadth, not depth.
 - Offline checks using maintained JSON Schema validation, standard-library
   tests, and deterministic example rendering. No Databricks credentials required.
 - An [authorized-live-validation protocol](references/authorized-live-validation.md),
@@ -38,8 +42,13 @@ Example requests:
   [shape envelope](references/shape-topology.md), covering product forms, an
   anti-pattern catalog, and model topology. It comes with
   `scripts/shape_profile.py`:
-  - `advise` reviews any table, model, or bounded DDL and suggests remedies;
-  - `check` and `targets` handle models and full MVM/ECM scopes;
+  - `advise` reviews any table, model, or bounded DDL, infers undeclared classes
+    with a corpus-trained classifier (79% held-out accuracy), and suggests
+    remedies;
+  - `check` scores models on topology, product shape, and a composite calibrated
+    on the agent corpus (median about 88), after discounting boilerplate columns
+    and stock sentences;
+  - `targets` sizes full MVM/ECM scopes;
   - `profile` and `build-envelope` support regeneration.
 
   The envelope is validated by leave-one-industry-out. See the

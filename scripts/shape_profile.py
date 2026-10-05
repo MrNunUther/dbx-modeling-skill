@@ -4,7 +4,7 @@
 Commands:
   profile MODEL [MODEL ...]                 Print scale-free shape fingerprints.
   build-envelope --corpus DIR --out FILE    Derive per-scope bands from agent outputs.
-  check MODEL --envelope FILE --scope mvm   Score a model against the envelope.
+  check MODEL --envelope FILE --scope mvm   Score topology, product shape, and a composite.
   targets --envelope FILE --scope mvm       Emit skeleton-first synthesis quotas.
   advise MODEL|DDL.sql --envelope FILE      Per-table guidance toward common shapes.
 
@@ -15,6 +15,7 @@ bounded CREATE TABLE DDL (``.sql``). No Databricks connection is used.
 import argparse
 import collections
 import json
+import math
 from pathlib import Path
 import re
 import statistics
@@ -23,8 +24,8 @@ import sys
 DATA_TYPES = ("master_data", "transactional_data", "reference_data", "association_data")
 FAMILIES = [
     ("audit", r"^(created|updated|modified|last_modified|last_updated|deleted)_(timestamp|at|by|date)$|^version_number$"),
+    ("classifier", r"(_type|_category|_class|_tier|_level|_method|_source|_channel|_mode)(_code)?$"),
     ("identifier", r"(_number|_code|_npi|_ndc|_identifier|_reference)$"),
-    ("classifier", r"(_type|_category|_class|_tier|_level|_method|_source|_channel|_mode)$"),
     ("status", r"(_status|_reason|_reason_code)$|^status$"),
     ("temporal", r"(_date|_year|_month|_timestamp|_at)$"),
     ("amount", r"(_amount|_cost|_price|_fee|_premium|_balance|_total|_charge)$"),
@@ -40,7 +41,7 @@ SCALE_METRICS = {"domains", "products", "attributes", "fks", "metric_views", "da
 # A value between the observed band and its ideal is treated as in band, never penalized.
 IDEALS = {"pk_first_share": 1.0, "fk_front_share": 1.0, "fk_name_ends_with_target_pk": 1.0,
           "cycle_back_edges": 0.0, "siloed_product_share": 0.0, "unresolved_fk_share": 0.0,
-          "subdomain_two_word_share": 1.0}
+          "subdomain_two_word_share": 1.0, "audit_column_product_share": 1.0}
 
 
 def _norm_type(value):
@@ -433,8 +434,87 @@ ADDRESS_PARTS = {"address", "city", "state", "postal_code", "zip", "country"} | 
 IDENTITY_PARTS = {"name", "email", "phone", "dob", "birth_date", "gender"}
 
 
-def infer_data_type(product, products=None, _seen=None):
-    """Structural guess when no classification is declared; always reported as inferred."""
+def _class_features(product):
+    """Generic name-token and structure features for classification (no industry nouns survive training)."""
+    feats = {"p:" + t for t in product["name"].split("_")} | {"plast:" + product["name"].split("_")[-1]}
+    attrs = product["attrs"]
+    fks = [a for a in attrs if a["fk"] and a["name"] not in product["pk"]]
+    for a in attrs:
+        if a["name"] in product["pk"] or a["fk"]:
+            continue
+        tokens = a["name"].split("_")
+        feats.add("c:" + tokens[-1])
+        if len(tokens) > 1:
+            feats.add("c2:" + "_".join(tokens[-2:]))
+        feats.add("t:" + _norm_type(a["type"]))
+    feats.add(f"nfk:{min(len(fks), 6)}")
+    return feats
+
+
+def train_classifier(irs, min_industries=8):
+    """Bernoulli naive Bayes over features seen in at least ``min_industries`` industries."""
+    seen = collections.defaultdict(set)
+    rows = []
+    for industry, ir in irs.items():
+        for product in ir["products"].values():
+            if product["data_type"] in DATA_TYPES:
+                feats = _class_features(product)
+                rows.append((product["data_type"], feats))
+                for f in feats:
+                    seen[f].add(industry)
+    vocab = sorted(f for f, inds in seen.items() if len(inds) >= min_industries)
+    index = {f: i for i, f in enumerate(vocab)}
+    totals = [0] * len(DATA_TYPES)
+    counts = [[0] * len(DATA_TYPES) for _ in vocab]
+    for label, feats in rows:
+        c = DATA_TYPES.index(label)
+        totals[c] += 1
+        for f in feats:
+            if f in index:
+                counts[index[f]][c] += 1
+    return dict(method="bernoulli_naive_bayes", min_industries=min_industries, classes=list(DATA_TYPES),
+                totals=totals, features=vocab, counts=counts)
+
+
+_CLASSIFIER_CACHE = {}
+
+
+def _classifier_tables(classifier):
+    key = id(classifier)
+    if key not in _CLASSIFIER_CACHE or _CLASSIFIER_CACHE[key][0] is not classifier:
+        totals, k = classifier["totals"], len(classifier["classes"])
+        n = sum(totals)
+        base = [math.log((totals[c] + 1) / (n + k)) for c in range(k)]
+        delta = {}
+        for feature, row in zip(classifier["features"], classifier["counts"]):
+            probs = [(row[c] + 1) / (totals[c] + 2) for c in range(k)]
+            for c in range(k):
+                base[c] += math.log(1 - probs[c])
+            delta[feature] = [math.log(probs[c]) - math.log(1 - probs[c]) for c in range(k)]
+        _CLASSIFIER_CACHE[key] = (classifier, base, delta)
+    return _CLASSIFIER_CACHE[key][1:]
+
+
+def classify(product, classifier):
+    base, delta = _classifier_tables(classifier)
+    scores = list(base)
+    for feature in _class_features(product):
+        for c, value in enumerate(delta.get(feature, ())):
+            scores[c] += value
+    classes = classifier["classes"]
+    fks = sum(1 for a in product["attrs"] if a["fk"] and a["name"] not in product["pk"])
+    if fks < 2 and "association_data" in classes:  # 99% of corpus associations carry two or more references
+        scores[classes.index("association_data")] = float("-inf")
+    return classes[max(range(len(scores)), key=scores.__getitem__)]
+
+
+def infer_data_type(product, products=None, _seen=None, classifier=None):
+    """Guess when no classification is declared; always reported as inferred.
+
+    Uses the corpus-trained classifier when available, otherwise structural heuristics.
+    """
+    if classifier:
+        return classify(product, classifier)
     names = [a["name"] for a in product["attrs"]]
     fks = [a for a in product["attrs"] if a["fk"] and a["name"] not in product["pk"]]
     business = [a for a in product["attrs"] if not a["fk"] and a["name"] not in product["pk"]
@@ -626,7 +706,8 @@ def advise(ir, bands, only=None):
         if only and product["name"] not in only and key not in only:
             continue
         declared = product["data_type"] in DATA_TYPES
-        dt = product["data_type"] if declared else infer_data_type(product, ir["products"])
+        dt = product["data_type"] if declared else infer_data_type(product, ir["products"],
+                                                                    classifier=bands.get("classifier"))
         product = dict(product, data_type=dt)
         scoped = dict(ir, products={**ir["products"], key: product})
         findings = product_smells(scoped, key)
@@ -725,14 +806,181 @@ def check(fingerprint, bands, ignore_scale=False):
     return dict(score=round(100 * earned / total, 1) if total else 0.0, metrics=rows)
 
 
+AGENT_DEFECT_SMELLS = {"SHP-FK-03", "SHP-FK-05"}
+
+
+def product_score(report, bands):
+    """Product-level score: structural conformance and column-depth fit, each 0..1.
+
+    Conformance is the share of products with no structural warning; documented agent defects
+    (AGENT_DEFECT_SMELLS) are reported separately rather than scored. Depth fit gives 1 for
+    column counts inside the class p10..p90 band, 0.5 inside p02..p98, else 0.
+    """
+    if not report:
+        return dict(score=0.0, conformance=0.0, depth_fit=0.0, products=0, warn_codes={}, agent_defect_warnings=0)
+    clean, depth, codes, defect_warns = 0, 0.0, collections.Counter(), 0
+    for item in report:
+        warns = [f["code"] for f in item["findings"] if f["severity"] == "warn"]
+        structural = [c for c in warns if c not in AGENT_DEFECT_SMELLS]
+        defect_warns += len(warns) - len(structural)
+        codes.update(structural)
+        clean += not structural
+        band = bands["by_data_type"].get(item["data_type"], {}).get("metrics", {}).get("attributes")
+        if band:
+            value = item["metrics"]["attributes"]
+            depth += 1.0 if band["p10"] <= value <= band["p90"] else 0.5 if band["p02"] <= value <= band["p98"] else 0.0
+    n = len(report)
+    conformance, depth_fit = clean / n, depth / n
+    return dict(score=round(50 * (conformance + depth_fit), 1), conformance=round(conformance, 3),
+                depth_fit=round(depth_fit, 3), products=n, warn_codes=dict(codes.most_common()),
+                agent_defect_warnings=defect_warns)
+
+
+def composite_score(model_score, product_result):
+    """Equal weight to model topology and product shape."""
+    return round((model_score + product_result["score"]) / 2, 1)
+
+
+def _classifier_holdout(irs):
+    correct = total = 0
+    for industry, ir in irs.items():
+        model = train_classifier({k: v for k, v in irs.items() if k != industry})
+        for product in ir["products"].values():
+            if product["data_type"] in DATA_TYPES:
+                total += 1
+                correct += classify(product, model) == product["data_type"]
+    return round(correct / total, 3) if total else 0.0
+
+
+PADDING_MIN_PRODUCTS = 8
+PADDING_UBIQUITY = 0.8
+PADDING_ALLOWANCE = 2
+PADDING_SENTENCE_MIN = 24
+
+
+def depad(ir):
+    """Discount boilerplate before scoring: depth is not padding.
+
+    Calibrated on the agent corpus, where at most 2 non-key columns appear in 80%+ of a
+    model's products (created/updated stamps, which the allowance keeps first) and repeated description sentences are rare
+    (MVM max 0.063 per attribute, ECM max 0.014). Beyond that allowance, ubiquitous non-key
+    columns, the edges they carry, and sentences repeated across many descriptions are
+    stripped, so they cannot raise depth or density. Returns (ir, padding_summary).
+    """
+    products = ir["products"]
+    n = len(products)
+    summary = dict(stripped_columns=[], repeated_sentences=0, repeated_sentence_rate=0.0)
+    if n < PADDING_MIN_PRODUCTS:
+        return ir, summary
+    counts = collections.Counter(a["name"] for p in products.values() for a in p["attrs"]
+                                 if a["name"] not in p["pk"])
+    audit = re.compile(dict(FAMILIES)["audit"])
+    ubiquitous = sorted((name for name, c in counts.items() if c >= PADDING_UBIQUITY * n),
+                        key=lambda name: (not audit.search(name), "timestamp" not in name, -counts[name], name))
+    strip = set(ubiquitous[PADDING_ALLOWANCE:])
+    sentences = collections.Counter()
+    for p in products.values():
+        for text in [p["description"]] + [a["description"] for a in p["attrs"]]:
+            sentences.update(_sentences(text))
+    repeated = {s for s, c in sentences.items() if c >= max(5, 0.2 * n)}
+    n_attrs = sum(len(p["attrs"]) for p in products.values()) or 1
+    hits = sum(c for s, c in sentences.items() if s in repeated)
+
+    def clean(text):
+        if not repeated:
+            return text
+        return " ".join(s for s in _sentences(text, keep_short=True) if s not in repeated)
+
+    new_products = {}
+    for key, p in products.items():
+        attrs = [dict(a, description=clean(a["description"])) for a in p["attrs"]
+                 if a["name"] not in strip or a["name"] in p["pk"]]
+        new_products[key] = dict(p, attrs=attrs, description=clean(p["description"]))
+    edges = [e for e in ir["edges"] if e[2] not in strip]
+    summary.update(stripped_columns=sorted(strip), repeated_sentences=len(repeated),
+                   repeated_sentence_rate=round(hits / n_attrs, 3))
+    return dict(ir, products=new_products, edges=edges), summary
+
+
+def _sentences(text, keep_short=False):
+    parts = [s.strip() for s in re.split(r"(?<=[.!?])\s+", text or "") if s.strip()]
+    return parts if keep_short else [s for s in parts if len(s) >= PADDING_SENTENCE_MIN]
+
+
+SLICE_SIZES = (3, 4, 5, 6)
+
+
+def slice_ir(ir, domains):
+    """A bounded slice of a model: the named domains only, as a designer would bound it.
+
+    FK columns whose targets fall outside the slice are dropped (they could not be declared),
+    and metric views are pro-rated by product share.
+    """
+    keep = {k for k, p in ir["products"].items() if p["domain"] in domains}
+    products = {}
+    for key in keep:
+        p = ir["products"][key]
+        products[key] = dict(p, attrs=[a for a in p["attrs"] if not a["fk"] or a["fk"] in keep])
+    edges = [e for e in ir["edges"] if e[0] in keep and e[1] in keep]
+    share = len(keep) / len(ir["products"]) if ir["products"] else 0.0
+    return dict(ir, products=products, edges=edges, domains=[d for d in ir["domains"] if d["name"] in domains],
+                metric_views=round(ir["metric_views"] * share))
+
+
+def connected_slices(ir, sizes=SLICE_SIZES):
+    """Most interconnected k-domain subset per k, found greedily (what a bounded request picks)."""
+    weight = collections.Counter()
+    for source, target, _ in ir["edges"]:
+        if target in ir["products"] and source in ir["products"]:
+            a, b = ir["products"][source]["domain"], ir["products"][target]["domain"]
+            if a != b:
+                weight[frozenset((a, b))] += 1
+    names = [d["name"] for d in ir["domains"]]
+    slices = []
+    for k in sizes:
+        if k >= len(names):
+            continue
+        seed = max(weight, key=weight.get, default=frozenset(names[:2]))
+        chosen = set(seed)
+        while len(chosen) < k:
+            chosen.add(max((n for n in names if n not in chosen),
+                           key=lambda n: (sum(weight[frozenset((n, c))] for c in chosen), n)))
+        slices.append(sorted(chosen)[:k])
+    return slices
+
+
+def _slice_reference(irs, product_bands):
+    """Bands, holdout, and composite calibration for bounded slices of agent models."""
+    fps = {}
+    for industry, ir in irs.items():
+        for domains in connected_slices(ir):
+            fps[(industry, len(domains))] = (slice_ir(ir, set(domains)), None)
+    for key, (sliced, _) in fps.items():
+        fps[key] = (sliced, profile(sliced))
+    bands = build_bands({k: v[1] for k, v in fps.items()})
+    shape, composite = {}, {}
+    for industry in irs:
+        others = build_bands({k: v[1] for k, v in fps.items() if k[0] != industry})
+        own = [k for k in fps if k[0] == industry]
+        scores = [check(fps[k][1], others, ignore_scale=True)["score"] for k in own]
+        prods = [product_score(advise(fps[k][0], product_bands), product_bands)["score"] for k in own]
+        shape[industry] = round(statistics.median(scores), 1)
+        composite[industry] = round(statistics.median(
+            [composite_score(a, dict(score=b)) for a, b in zip(scores, prods)]), 1)
+    summary = lambda d: dict(median=statistics.median(d.values()), min=min(d.values()), max=max(d.values()))
+    return dict(sizes=list(SLICE_SIZES), slices=len(fps), selection="most interconnected k domains per industry",
+                bands=bands, leave_one_out=dict(**summary(shape), scores=dict(sorted(shape.items()))),
+                composite=dict(**summary(composite), scores=dict(sorted(composite.items()))))
+
+
 def build_envelope(corpus, scopes=("mvm", "ecm"), min_agent_major=4):
-    envelope = dict(envelope_version="1.1.0", method="shape-envelope",
+    envelope = dict(envelope_version="1.5.0", method="shape-envelope",
                     corpus_filter=dict(min_agent_major=min_agent_major, selection="latest qualifying version per industry"),
                     scopes={})
     corpus_irs = {}
     for scope in scopes:
         paths = latest_corpus(corpus, scope, min_agent_major)
-        irs = {industry: load(path) for industry, path in paths.items()}
+        irs = {industry: depad(load(path))[0] for industry, path in paths.items()}
         corpus_irs[scope] = irs
         fps = {industry: profile(ir) for industry, ir in irs.items()}
         bands = build_bands(fps)
@@ -753,6 +1001,22 @@ def build_envelope(corpus, scopes=("mvm", "ecm"), min_agent_major=4):
     # Product shape does not depend on scope (an MVM is a subset of its ECM), so pool the superset.
     source = "ecm" if "ecm" in corpus_irs else scopes[-1]
     envelope["product_bands"] = dict(source_scope=source, **product_bands(corpus_irs[source]))
+    classifier = train_classifier(corpus_irs[source])
+    classifier["leave_one_out_accuracy"] = _classifier_holdout(corpus_irs[source])
+    envelope["product_bands"]["classifier"] = classifier
+    # Calibrate the composite on the corpus itself (model part held out; product bands pooled).
+    for scope, irs in corpus_irs.items():
+        data = envelope["scopes"][scope]
+        composites = {}
+        for industry, ir in irs.items():
+            prod = product_score(advise(ir, envelope["product_bands"]), envelope["product_bands"])
+            composites[industry] = dict(product=prod["score"],
+                                        composite=composite_score(data["leave_one_out"]["scores"][industry], prod))
+        values = [v["composite"] for v in composites.values()]
+        product_values = [v["product"] for v in composites.values()]
+        data["composite"] = dict(median=statistics.median(values), min=min(values), max=max(values),
+                                 product_median=statistics.median(product_values), scores=dict(sorted(composites.items())))
+        data["slice"] = _slice_reference(irs, envelope["product_bands"])
     return envelope
 
 
@@ -816,14 +1080,37 @@ def targets(envelope, scope, domains=None):
     )
 
 
+def _targets_text(plan, prefix=""):
+    lines = []
+    for key, value in plan.items():
+        if isinstance(value, dict):
+            lines.append(f"{prefix}{key}:")
+            lines.append(_targets_text(value, prefix + "  "))
+        else:
+            lines.append(f"{prefix}{key}: {value}")
+    return "\n".join(lines)
+
+
 def _text_report(result, show_all=False):
-    lines = [f"shape score: {result['score']}"]
+    lines = [f"shape score: {result['score']}" + (f" (reference: {result['reference']})" if "reference" in result else "")]
+    if "products" in result:
+        prod = result["products"]
+        lines.append(f"product score: {prod['score']} (conformance {prod['conformance']}, depth fit {prod['depth_fit']}, "
+                     f"{prod['products']} products)")
+        lines.append(f"composite: {result['composite']}")
+        if prod["warn_codes"]:
+            lines.append("  structural warnings: " + ", ".join(f"{k}={v}" for k, v in prod["warn_codes"].items()))
     order = {"out": 0, "near": 1, "in_band": 2}
     for row in sorted(result["metrics"], key=lambda r: (order[r["status"]], r["stability"], r["metric"])):
         if row["status"] == "in_band" and not show_all:
             continue
         lines.append(f"  {row['status']:<8} {row['stability']:<9} {row['metric']:<36} "
                      f"{row['value']!s:<10} band {row['band'][0]}..{row['band'][1]}")
+    padding = result.get("padding") or {}
+    if padding.get("stripped_columns") or padding.get("repeated_sentences"):
+        lines.append(f"padding discounted: {len(padding['stripped_columns'])} ubiquitous columns "
+                     f"({', '.join(padding['stripped_columns'][:6])}{', ...' if len(padding['stripped_columns']) > 6 else ''}), "
+                     f"{padding['repeated_sentences']} repeated sentences (rate {padding['repeated_sentence_rate']})")
     flagged = {k: v for k, v in result.get("defects", {}).items() if v}
     lines.append("defects: " + (", ".join(f"{k}={v}" for k, v in flagged.items()) if flagged else "none"))
     return "\n".join(lines)
@@ -844,12 +1131,17 @@ def main(argv=None):
     p_check.add_argument("--envelope", type=Path, required=True)
     p_check.add_argument("--scope", choices=["mvm", "ecm"], required=True)
     p_check.add_argument("--ignore-scale", action="store_true", help="Skip scope-size metrics for bounded slices.")
-    p_check.add_argument("--min-score", type=float, default=None)
+    p_check.add_argument("--reference", choices=["auto", "full", "slice"], default="auto",
+                         help="Compare with full agent models or with bounded slices of them. "
+                              "auto picks slice when the model has fewer domains than the scope's p10.")
+    p_check.add_argument("--min-score", type=float, default=None, help="Fail below this model (topology) score.")
+    p_check.add_argument("--min-composite", type=float, default=None, help="Fail below this composite score.")
     p_check.add_argument("--format", choices=["json", "text"], default="json")
     p_targets = sub.add_parser("targets")
     p_targets.add_argument("--envelope", type=Path, required=True)
     p_targets.add_argument("--scope", choices=["mvm", "ecm"], required=True)
     p_targets.add_argument("--domains", type=int, default=None, help="Override the domain count.")
+    p_targets.add_argument("--format", choices=["json", "text"], default="json")
     p_advise = sub.add_parser("advise", help="Per-table guidance toward common shapes (JSON model or .sql DDL).")
     p_advise.add_argument("model", type=Path)
     p_advise.add_argument("--envelope", type=Path, required=True)
@@ -863,7 +1155,8 @@ def main(argv=None):
         print(_advise_text(report) if args.format == "text" else json.dumps(report, indent=2))
         return 1 if args.fail_on_warn and any(item["warnings"] for item in report) else 0
     if args.command == "targets":
-        print(json.dumps(targets(json.loads(args.envelope.read_text()), args.scope, args.domains), indent=2))
+        plan = targets(json.loads(args.envelope.read_text()), args.scope, args.domains)
+        print(_targets_text(plan) if args.format == "text" else json.dumps(plan, indent=2))
         return 0
     if args.command == "profile":
         out = {str(path): dict(metrics=profile(load(path)), defects=defects(load(path))) for path in args.models}
@@ -876,11 +1169,24 @@ def main(argv=None):
             print(f"{scope}: {data['count']} industries, leave-one-out median {data['leave_one_out']['median']}")
         return 0
     envelope = json.loads(args.envelope.read_text())
-    ir = load(args.model)
-    result = check(profile(ir), envelope["scopes"][args.scope]["bands"], args.ignore_scale)
-    result["defects"] = defects(ir)
+    raw_ir = load(args.model)
+    ir, padding = depad(raw_ir)
+    scope = envelope["scopes"][args.scope]
+    reference = args.reference
+    if reference == "auto":
+        reference = "slice" if "slice" in scope and len(ir["domains"]) < scope["bands"]["domains"]["p10"] else "full"
+    bands = scope["slice"]["bands"] if reference == "slice" else scope["bands"]
+    result = check(profile(ir), bands, args.ignore_scale or reference == "slice")
+    result["reference"] = reference
+    result["defects"] = defects(raw_ir)
+    result["padding"] = padding
+    if "product_bands" in envelope:
+        result["products"] = product_score(advise(ir, envelope["product_bands"]), envelope["product_bands"])
+        result["composite"] = composite_score(result["score"], result["products"])
     print(_text_report(result) if args.format == "text" else json.dumps(result, indent=2))
     if args.min_score is not None and result["score"] < args.min_score:
+        return 1
+    if args.min_composite is not None and result.get("composite", 0.0) < args.min_composite:
         return 1
     return 0
 

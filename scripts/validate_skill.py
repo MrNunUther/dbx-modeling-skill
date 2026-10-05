@@ -376,7 +376,8 @@ def validate_package(root):
                 "LICENSE", "NOTICE", "requirements.txt", "rules/instructions.md", "references/source-assessment.md",
                 "references/shape-topology.md", "templates/shape-envelope.json", "scripts/shape_profile.py",
                 "examples/anti-patterns/README.md", "examples/anti-patterns/claim_flat.sql",
-                "examples/anti-patterns/claim_remodeled.sql"]
+                "examples/anti-patterns/claim_remodeled.sql", "references/enterprise-depth.md",
+                "examples/enterprise-depth/README.md", "examples/enterprise-depth/claim.sql"]
     for relative in required:
         checks.require("PACKAGE", (root / relative).is_file(), relative, "Required package file.", "Present" if (root / relative).is_file() else "Missing")
     skill_path = root / "SKILL.md"

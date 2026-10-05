@@ -23,7 +23,9 @@ than silently using the source agent's 20% range.
    reference data, transactions, events, and associations.
 3. Define attributes and explicit keys in the common product form for the
    class. See [shape topology](shape-topology.md): body plan, attribute families,
-   and archetypes.
+   and archetypes. Work at [enterprise depth](enterprise-depth.md) by default:
+   complete the class coverage checklist, and keep only the columns with a
+   business purpose.
 4. Add relationships only after confirming their endpoints and business meaning.
 5. Review process coverage and normalization, including temporal snapshots.
    Run `shape_profile.py advise` and resolve anti-pattern warnings by

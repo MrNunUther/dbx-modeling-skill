@@ -20,7 +20,7 @@ a proxy for good structure, not proof of semantic correctness.
 | Level | Applies to | Command | Default use |
 |---|---|---|---|
 | Product shape | Any table or product, including a single DDL statement | `advise` | Always: design, review, remodel |
-| Model envelope | A set of related products | `check` (`--ignore-scale` for bounded scopes) | Whenever more than one product is in scope |
+| Model envelope | A set of related products | `check` (bounded scopes use the slice reference automatically) | Whenever more than one product is in scope |
 | Scale targets | A full MVM/ECM | `targets`, `check` with scale | Only when that scope is requested |
 
 Scale (domain/product counts, total FKs) is the only part that depends on scope.
@@ -29,8 +29,11 @@ this page applies to every product and model.
 
 ## Common product forms
 
-Classify each product first: declared, or inferred and reported as inferred. Then
-compare it with the form for its class. Values are corpus medians with
+Classify each product first. Use the declared class when there is one. Otherwise,
+infer it with the envelope's naive-Bayes classifier and report it as inferred.
+The classifier uses generic name tokens; its leave-one-industry-out accuracy is
+79%. Confirm the class whenever it changes the advice. Then compare the product
+with the form for its class. Values are corpus medians with
 p10–p90 bands.
 
 | Class | Columns | Outbound FKs | Typical form |
@@ -154,6 +157,44 @@ python3 scripts/shape_profile.py check MODEL --envelope templates/shape-envelope
 
 Treat invariant `out` rows as design questions, not as quotas.
 
+`check` reports three numbers:
+
+| Score | Measures | Full agent models (median, min) | Agent 3–6-domain slices (median, min) |
+|---|---|---|---|
+| Shape score | Model topology against the bands (held out by industry) | 84, 59 | 89–90, 73 |
+| Product score | Mean of conformance (share of products with no structural warning) and depth fit (column count in the class band) | 93 (MVM), 90 (ECM) | — |
+| Composite | Mean of the two | 89 / 87, 74 | 92 / 91, 82 |
+
+**Reference.** A bounded model is compared with bounded slices of agent models,
+not with whole models. Graph metrics shift with scope even when size is ignored:
+cross-domain share, degree, and FKs per product all change. Whole agent models
+cut to four domains score only about 62 against full-model bands.
+
+The slice reference is built as follows:
+
+1. Cut each corpus model to its most interconnected 3, 4, 5, and 6 domains.
+2. Drop the FKs that leave the slice, and pro-rate the metric views.
+3. Hold the result out by industry.
+
+`check --reference auto` (the default) uses the slice reference when the model
+has fewer domains than the scope's p10 and implies `--ignore-scale`. Use
+`--reference full` for a full-scope model. The text report names the reference
+it used.
+
+Agent-defect warnings (FK-03, FK-05) are reported but not scored. A composite of
+about 80 or above reads as agent-like. Use `--min-composite` as a gate. A
+bounded teaching slice scores lower because its products are deliberately thin;
+report that gap rather than padding to close it.
+
+Padding cannot close the gap either. Before scoring, `check` discounts:
+
+- non-key columns that appear on 80% or more of products, beyond the two audit
+  stamps, together with the edges they carry;
+- sentences repeated across many descriptions.
+
+It reports what it discounted. The agent corpus has at most two such columns and
+almost no repeated sentences, so its scores are unchanged.
+
 ### Full-scope sizing
 
 The full-scope bands are:
@@ -192,7 +233,27 @@ Measured without running the agent:
 
 - **Leave-one-industry-out.** Each industry is scored against bands built from
   the other 14 industries. The median score is 84 for both scopes, so a score of
-  about 80 or above reads as agent-like.
+  about 80 or above reads as agent-like. Composite medians are 89 (MVM) and 87
+  (ECM), with a minimum of 74.
+- **Separation.** Composite scores against the default reference fall in clear
+  tiers:
+  - flat anti-pattern table: 32;
+  - its remodel: 55;
+  - teaching slice: 56;
+  - blind skill-only generation of a four-domain municipal MVM, by round:
+
+    | Round | Setup | Composite |
+    |---|---|---|
+    | 1 | Before the depth guidance | 63 |
+    | 2a | Docs only | 71 |
+    | 2b | With tool feedback but padded; it scored 80 before the padding discount | 77 |
+    | 3 | With tool feedback after the padding and association guidance | 85 |
+
+  - agent slices: 82–96;
+  - full agent models: 74–93.
+
+  Inputs with very few products (one to six) are reviewed with `advise`.
+  Topology scores are not meaningful at that size.
 - **Closed loop.** Skeletons built only from `targets` score about 92 (MVM) and
   about 84 (ECM) ([tests](../tests/test_shape_profile.py)).
 - **Agent output.** The agent's own health_insurance MVM triggers only its two
