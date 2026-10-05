@@ -21,9 +21,13 @@ than silently using the source agent's 20% range.
 1. Identify authoritative owners and current business processes.
 2. Declare products and row grains. Distinguish parties, agreements, resources,
    reference data, transactions, events, and associations.
-3. Define attributes and explicit keys.
+3. Define attributes and explicit keys in the common product form for the
+   class. See [shape topology](shape-topology.md): body plan, attribute families,
+   and archetypes.
 4. Add relationships only after confirming their endpoints and business meaning.
 5. Review process coverage and normalization, including temporal snapshots.
+   Run `shape_profile.py advise` and resolve anti-pattern warnings by
+   remodeling.
 6. Add semantic metadata and physical mappings.
 7. Produce matched artifacts and evidence-bearing review.
 
@@ -34,7 +38,11 @@ not automated quality gates.
 
 ## Review and changes
 
-For a review, preserve input and report findings before proposing edits. For
+For a review, preserve input and report findings before proposing edits.
+Shape review is part of every review. When you are given an existing or poorly
+constructed table, run `advise` on it. Propose a common-form remodel with an
+old-to-new column map instead of reproducing its shape. See the
+[anti-pattern example](../examples/anti-patterns/README.md). For
 changes, follow [evolution](model-evolution.md). Do not interpret `current_vibes`
 or `next_vibes` proposals as actual user-approved requirements. Record requested,
 proposed, applied, and verified states separately.

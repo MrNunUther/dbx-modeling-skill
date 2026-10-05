@@ -25,6 +25,7 @@ enterprise requirements.
 - Turn business requirements into model artifacts and ordered Databricks DDL.
 - Propose dependency-aware changes to an existing model.
 - Reconcile conflicting model exports or assess logical/physical parity.
+- Review or remodel a poorly constructed table toward a common, well-formed shape.
 
 For advanced SQL features use `databricks-dbsql` when available. For grants,
 ownership changes, masks, filters, and storage credentials use
@@ -45,6 +46,7 @@ documentation and disclose unsupported execution instead of guessing commands.
 | Change a model | [Evolution](references/model-evolution.md) | New version and impact proposal |
 | Prepare live checks | [Authorization](references/authorized-live-validation.md) | Explicitly scoped verification request |
 | Interpret seed limitations | [Source assessment](references/source-assessment.md) | Provenance and adaptation decisions |
+| Shape any table or model (default) | [Shape topology](references/shape-topology.md) | `advise` findings and remodel; `targets` for full scope |
 
 Load only relevant references. Use [portable instructions](rules/instructions.md)
 throughout; select applicable rows from the [rule catalog](rules/modeling-rules.csv),
@@ -95,6 +97,21 @@ protected name cannot map to a valid identifier, ask for an explicit mapping.
 8. **Verify and report.** Run applicable offline checks, review semantic findings,
    and distinguish unrun physical/data checks from passes.
 
+**Shape guidance is the default, not a mode.** Every table you design, review,
+or receive is compared with the common forms in
+[shape topology](references/shape-topology.md):
+
+- In steps 3–6, classify each product, apply the body plan, and resolve
+  anti-patterns (embedded entities, repeating groups, EAV, weak types) by
+  steering toward the common form.
+- For an existing or user-supplied table, run `advise` first. Propose the remodel
+  with a column map rather than reproducing its shape.
+- In step 8, run `advise`, and run `check` for multi-product models
+  (`--ignore-scale` when bounded).
+- Use `targets` before step 2 only when a full MVM/ECM scope is requested.
+
+Bands guide shape; they never override scope, protected names, or semantics.
+
 ## Output contract
 
 Use the [model contract](templates/model.schema.json) and
@@ -134,6 +151,21 @@ ALTER TABLE `__CATALOG__`.`claim`.`line`
   ADD CONSTRAINT fk_line_header FOREIGN KEY (header_id)
   REFERENCES `__CATALOG__`.`claim`.`header` (header_id);
 ```
+
+### Steering a poorly constructed table
+
+A wide `claim_flat` table holds `member_name`/`member_email`/`member_phone`,
+`diagnosis_code_1..3`, `attr_name`/`attr_value`, and a STRING amount. Do not
+polish it in place. `advise` reports embedded entities, repeating groups, EAV,
+and type warnings. The common form is:
+
+- a `member` master referenced by `member_id`;
+- a `claim_diagnosis` child, one row per diagnosis;
+- typed attributes instead of attribute/value pairs;
+- DECIMAL money.
+
+See the [anti-pattern remodel](examples/anti-patterns/README.md): 12 warnings
+before, 0 after.
 
 ### Evidence-bearing finding
 
@@ -175,6 +207,8 @@ python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements.txt
 .venv/bin/python scripts/validate_skill.py --root .
 .venv/bin/python -m unittest discover -s tests -p 'test_*.py'
+.venv/bin/python scripts/shape_profile.py advise MODEL_OR_TABLE.sql --envelope templates/shape-envelope.json
+.venv/bin/python scripts/shape_profile.py check MODEL --envelope templates/shape-envelope.json --scope mvm --format text
 ```
 
 These check the bounded MVP contract and deterministic example representations.

@@ -373,7 +373,10 @@ def validate_package(root):
     root = root.resolve()
     checks = Checks()
     required = ["SKILL.md", "README.md", "agents/openai.yaml", "assets/modeling.svg", "assets/modeling.png",
-                "LICENSE", "NOTICE", "requirements.txt", "rules/instructions.md", "references/source-assessment.md"]
+                "LICENSE", "NOTICE", "requirements.txt", "rules/instructions.md", "references/source-assessment.md",
+                "references/shape-topology.md", "templates/shape-envelope.json", "scripts/shape_profile.py",
+                "examples/anti-patterns/README.md", "examples/anti-patterns/claim_flat.sql",
+                "examples/anti-patterns/claim_remodeled.sql"]
     for relative in required:
         checks.require("PACKAGE", (root / relative).is_file(), relative, "Required package file.", "Present" if (root / relative).is_file() else "Missing")
     skill_path = root / "SKILL.md"

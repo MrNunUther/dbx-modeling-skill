@@ -34,6 +34,16 @@ Example requests:
   tests, and deterministic example rendering. No Databricks credentials required.
 - An [authorized-live-validation protocol](references/authorized-live-validation.md),
   not a live executor.
+- Default shape guidance from a corpus-derived
+  [shape envelope](references/shape-topology.md), covering product forms, an
+  anti-pattern catalog, and model topology. It comes with
+  `scripts/shape_profile.py`:
+  - `advise` reviews any table, model, or bounded DDL and suggests remedies;
+  - `check` and `targets` handle models and full MVM/ECM scopes;
+  - `profile` and `build-envelope` support regeneration.
+
+  The envelope is validated by leave-one-industry-out. See the
+  [anti-pattern remodel](examples/anti-patterns/README.md) example.
 
 ```bash
 python3 -m venv .venv

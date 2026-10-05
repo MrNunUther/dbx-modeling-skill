@@ -10,3 +10,6 @@ manufacturing, service operations, and other domains.
 
 No real person records, clinical code lists, licensed service-code descriptions,
 source workbooks, lineage dumps, or synthetic-data engine are included.
+
+For steering a poorly constructed table toward a common form, see the
+[anti-pattern remodel](anti-patterns/README.md).

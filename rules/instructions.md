@@ -29,6 +29,18 @@ Compare determinants, grain, lifecycle, and ownership. Preserve event snapshots,
 measurements, source reconciliation keys, and distinct semantics. Propose rather
 than blindly execute removals/merges. Apply DBX-NORM-001 and DBX-DEDUP-001.
 
+## I-04a: Steer toward common shape by default
+
+Compare every designed, reviewed, or supplied table with the common product form
+for its class. Keep the body plan (BIGINT PK first, FKs clustered, typed columns).
+Resolve embedded entities, repeating groups, attribute/value pairs, opaque
+columns, and weakly typed money, flags, or dates by remodeling rather than
+reproducing them.
+
+Report band deviations as advice. Never pad, enlarge a bounded scope, or override
+protected intent to fit a band. Never imitate documented agent defects. Apply
+DBX-FORM-001.
+
 ## I-05: Record semantic and governance metadata
 
 Use accurate descriptions, glossary terms, applicable standards references,
